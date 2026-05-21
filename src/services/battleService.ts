@@ -3,7 +3,7 @@ import type { BattleRecord, BattleRecordInput, BattleResult, Character, Situatio
 
 const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 const geminiModel = 'gemini-2.5-flash';
-const geminiTimeoutMs = 8000;
+const geminiTimeoutMs = 20000;
 const shouldUseGeminiProxy = import.meta.env.PROD;
 
 function topicSentence(character: Character) {
@@ -107,7 +107,18 @@ export async function generateBattleWithGemini(characterA: Character, characterB
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '');
-    throw new Error(`Gemini request failed: ${response.status}${errorText ? ` ${errorText}` : ''}`);
+    let errorMessage = errorText;
+    try {
+      const parsed = JSON.parse(errorText) as { error?: { message?: string } | string };
+      errorMessage =
+        typeof parsed.error === 'string'
+          ? parsed.error
+          : parsed.error?.message || errorText;
+    } catch {
+      // Keep the original text when the API did not return JSON.
+    }
+
+    throw new Error(`Gemini request failed: ${response.status}${errorMessage ? ` ${errorMessage}` : ''}`);
   }
 
   const data = (await response.json()) as {

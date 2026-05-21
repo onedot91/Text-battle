@@ -56,9 +56,11 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
 
       try {
         result = await generateBattleWithGemini(characterA, characterB, situation);
-      } catch {
+      } catch (geminiError) {
+        const message = geminiError instanceof Error ? geminiError.message : '알 수 없는 오류';
+        console.error('Gemini battle generation failed.', geminiError);
         result = generateFallbackBattle(characterA, characterB, situation);
-        setNotice('임시 결과');
+        setNotice(`임시 결과: ${message}`);
       }
 
       const record: BattleRecordInput = {

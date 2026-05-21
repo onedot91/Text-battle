@@ -9,7 +9,53 @@ export default async function handler(request, response) {
   const apiKey = getGeminiApiKey();
 
   if (request.method === 'GET') {
-    response.status(200).json({ configured: Boolean(apiKey) });
+    if (request.query?.test !== '1') {
+      response.status(200).json({ configured: Boolean(apiKey) });
+      return;
+    }
+
+    if (!apiKey) {
+      response.status(200).json({ configured: false, reachable: false });
+      return;
+    }
+
+    try {
+      const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: 'Return JSON only: {"ok":true}' }] }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              temperature: 0,
+            },
+          }),
+        },
+      );
+
+      if (!geminiResponse.ok) {
+        const responseText = await geminiResponse.text();
+        let message = responseText;
+        try {
+          const parsed = JSON.parse(responseText);
+          message = parsed?.error?.message || message;
+        } catch {
+          // Google can return plain text for some gateway errors.
+        }
+        response.status(200).json({ configured: true, reachable: false, error: message });
+        return;
+      }
+
+      response.status(200).json({ configured: true, reachable: true });
+    } catch (error) {
+      response.status(200).json({
+        configured: true,
+        reachable: false,
+        error: error instanceof Error ? error.message : 'Gemini request failed.',
+      });
+    }
     return;
   }
 
@@ -37,7 +83,15 @@ export default async function handler(request, response) {
     const responseText = await geminiResponse.text();
 
     if (!geminiResponse.ok) {
-      response.status(geminiResponse.status).send(responseText);
+      let message = responseText;
+      try {
+        const parsed = JSON.parse(responseText);
+        message = parsed?.error?.message || message;
+      } catch {
+        // Google can return plain text for some gateway errors.
+      }
+
+      response.status(geminiResponse.status).json({ error: message });
       return;
     }
 
