@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { checkSupabaseConnection } from '../services/supabaseStatusService';
-import { isGeminiConfigured } from '../services/geminiStatusService';
+import { checkGeminiConfiguration } from '../services/geminiStatusService';
 
 type LayoutProps = {
   children: ReactNode;
@@ -9,9 +9,11 @@ type LayoutProps = {
 };
 
 type SupabaseStatus = 'checking' | 'connected' | 'disconnected';
+type GeminiStatus = 'checking' | 'configured' | 'missing';
 
 export function Layout({ children, isHome, onHome }: LayoutProps) {
   const [supabaseStatus, setSupabaseStatus] = useState<SupabaseStatus>('checking');
+  const [geminiStatus, setGeminiStatus] = useState<GeminiStatus>('checking');
 
   useEffect(() => {
     let isMounted = true;
@@ -22,6 +24,14 @@ export function Layout({ children, isHome, onHome }: LayoutProps) {
         })
         .catch(() => {
           if (isMounted) setSupabaseStatus('disconnected');
+        });
+
+      checkGeminiConfiguration()
+        .then(() => {
+          if (isMounted) setGeminiStatus('configured');
+        })
+        .catch(() => {
+          if (isMounted) setGeminiStatus('missing');
         });
     }, 300);
 
@@ -37,9 +47,12 @@ export function Layout({ children, isHome, onHome }: LayoutProps) {
       : supabaseStatus === 'disconnected'
         ? 'bg-rose-500/50 shadow-[0_0_16px_rgba(244,63,94,0.35)]'
         : 'animate-pulse bg-slate-400/40 shadow-[0_0_14px_rgba(100,116,139,0.25)]';
-  const geminiStatusClass = isGeminiConfigured()
-    ? 'bg-sky-500/70 shadow-[0_0_18px_rgba(14,165,233,0.5)]'
-    : 'bg-slate-400/35 shadow-[0_0_14px_rgba(100,116,139,0.25)]';
+  const geminiStatusClass =
+    geminiStatus === 'configured'
+      ? 'bg-sky-500/70 shadow-[0_0_18px_rgba(14,165,233,0.5)]'
+      : geminiStatus === 'missing'
+        ? 'bg-rose-500/50 shadow-[0_0_16px_rgba(244,63,94,0.35)]'
+        : 'animate-pulse bg-slate-400/40 shadow-[0_0_14px_rgba(100,116,139,0.25)]';
 
   return (
     <div className="min-h-screen bg-sky-50">

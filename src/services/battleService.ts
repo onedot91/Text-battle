@@ -4,6 +4,7 @@ import type { BattleRecord, BattleRecordInput, BattleResult, Character, Situatio
 const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 const geminiModel = 'gemini-2.5-flash';
 const geminiTimeoutMs = 8000;
+const shouldUseGeminiProxy = import.meta.env.PROD;
 
 function topicSentence(character: Character) {
   return `내 캐릭터 ${character.name}은/는 ${character.ability_blank} 능력을 가진 캐릭터입니다.`;
@@ -77,31 +78,36 @@ function textOrFallback(value: unknown, fallback: string) {
 }
 
 export async function generateBattleWithGemini(characterA: Character, characterB: Character, situation: Situation) {
-  if (!geminiApiKey || geminiApiKey === 'your-gemini-api-key') {
+  if (!shouldUseGeminiProxy && (!geminiApiKey || geminiApiKey === 'your-gemini-api-key')) {
     throw new Error('Gemini API key is missing.');
   }
 
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), geminiTimeoutMs);
 
+  const requestBody = {
+    contents: [{ parts: [{ text: buildPrompt(characterA, characterB, situation) }] }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.7,
+    },
+  };
+
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`,
+    shouldUseGeminiProxy
+      ? '/api/gemini'
+      : `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: buildPrompt(characterA, characterB, situation) }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.7,
-        },
-      }),
+      body: JSON.stringify(requestBody),
     },
   ).finally(() => window.clearTimeout(timeoutId));
 
   if (!response.ok) {
-    throw new Error(`Gemini request failed: ${response.status}`);
+    const errorText = await response.text().catch(() => '');
+    throw new Error(`Gemini request failed: ${response.status}${errorText ? ` ${errorText}` : ''}`);
   }
 
   const data = (await response.json()) as {
