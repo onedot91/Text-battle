@@ -1,46 +1,9 @@
-import {
-  addDoc,
-  collection,
-  getDocs,
-  limit as firestoreLimit,
-  orderBy,
-  query,
-  serverTimestamp,
-  type DocumentData,
-  type QueryDocumentSnapshot,
-  type Timestamp,
-} from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 import type { BattleRecord, BattleRecordInput, BattleResult, Character, Situation } from '../types';
 
-const battleRecordsCollection = collection(db, 'battle_records');
 const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 const geminiModel = 'gemini-2.5-flash';
 const geminiTimeoutMs = 8000;
-
-function timestampToString(value: Timestamp | string | null | undefined) {
-  if (!value) return new Date().toISOString();
-  if (typeof value === 'string') return value;
-  return value.toDate().toISOString();
-}
-
-function toBattleRecord(snapshot: QueryDocumentSnapshot<DocumentData>): BattleRecord {
-  const data = snapshot.data();
-  return {
-    id: snapshot.id,
-    character_a_id: String(data.character_a_id || ''),
-    character_b_id: String(data.character_b_id || ''),
-    winner_character_id: String(data.winner_character_id || ''),
-    situation_id: String(data.situation_id || ''),
-    situation_text: String(data.situation_text || ''),
-    story: String(data.story || ''),
-    reason: String(data.reason || ''),
-    evidence_topic_sentence: data.evidence_topic_sentence ? String(data.evidence_topic_sentence) : null,
-    evidence_support_sentence: data.evidence_support_sentence ? String(data.evidence_support_sentence) : null,
-    rewrite_tip: data.rewrite_tip ? String(data.rewrite_tip) : null,
-    created_at: timestampToString(data.created_at),
-  };
-}
 
 function topicSentence(character: Character) {
   return `내 캐릭터 ${character.name}은/는 ${character.ability_blank} 능력을 가진 캐릭터입니다.`;
@@ -166,20 +129,17 @@ export async function generateBattleWithGemini(characterA: Character, characterB
 }
 
 export async function createBattleRecord(record: BattleRecordInput) {
-  const reference = await addDoc(battleRecordsCollection, {
-    ...record,
-    created_at: serverTimestamp(),
-  });
-  return {
-    id: reference.id,
-    ...record,
-    created_at: new Date().toISOString(),
-  };
+  const { data, error } = await supabase.from('battle_records').insert(record).select().single();
+  if (error) throw error;
+  return data;
 }
 
 export async function getRecentBattleRecords(limit = 10) {
-  const snapshot = await getDocs(
-    query(battleRecordsCollection, orderBy('created_at', 'desc'), firestoreLimit(limit)),
-  );
-  return snapshot.docs.map(toBattleRecord);
+  const { data, error } = await supabase
+    .from('battle_records')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data satisfies BattleRecord[];
 }

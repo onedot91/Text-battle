@@ -1,0 +1,119 @@
+create extension if not exists pgcrypto;
+
+create table if not exists public.characters (
+  id uuid primary key default gen_random_uuid(),
+  student_number integer not null,
+  name text not null,
+  ability_blank text not null,
+  support1_blank text not null,
+  support2_blank text not null,
+  support3_blank text not null,
+  is_representative boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists characters_student_created_idx
+  on public.characters (student_number, created_at);
+
+create index if not exists characters_student_representative_idx
+  on public.characters (student_number, is_representative, updated_at desc);
+
+create unique index if not exists characters_one_representative_per_student_idx
+  on public.characters (student_number)
+  where is_representative;
+
+create table if not exists public.battle_records (
+  id uuid primary key default gen_random_uuid(),
+  character_a_id uuid not null references public.characters(id) on delete cascade,
+  character_b_id uuid not null references public.characters(id) on delete cascade,
+  winner_character_id uuid not null references public.characters(id) on delete cascade,
+  situation_id text not null,
+  situation_text text not null,
+  story text not null,
+  reason text not null,
+  evidence_topic_sentence text,
+  evidence_support_sentence text,
+  rewrite_tip text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists battle_records_created_idx
+  on public.battle_records (created_at desc);
+
+create table if not exists public.rewrite_logs (
+  id uuid primary key default gen_random_uuid(),
+  character_id uuid not null references public.characters(id) on delete cascade,
+  student_number integer not null,
+  field_name text not null check (field_name in ('ability_blank', 'support1_blank', 'support2_blank', 'support3_blank')),
+  before_text text not null,
+  after_text text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists rewrite_logs_character_created_idx
+  on public.rewrite_logs (character_id, created_at desc);
+
+create index if not exists rewrite_logs_created_idx
+  on public.rewrite_logs (created_at desc);
+
+alter table public.characters enable row level security;
+alter table public.battle_records enable row level security;
+alter table public.rewrite_logs enable row level security;
+
+create policy "Public classroom access to characters"
+  on public.characters
+  for all
+  using (true)
+  with check (true);
+
+create policy "Public classroom access to battle records"
+  on public.battle_records
+  for all
+  using (true)
+  with check (true);
+
+create policy "Public classroom access to rewrite logs"
+  on public.rewrite_logs
+  for all
+  using (true)
+  with check (true);
+
+create or replace function public.set_representative_character(
+  p_student_number integer,
+  p_character_id uuid
+)
+returns public.characters
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  selected_character public.characters;
+begin
+  if not exists (
+    select 1
+    from public.characters
+    where id = p_character_id
+      and student_number = p_student_number
+  ) then
+    raise exception 'Representative character not found.';
+  end if;
+
+  update public.characters
+  set is_representative = false,
+      updated_at = now()
+  where student_number = p_student_number
+    and is_representative = true;
+
+  update public.characters
+  set is_representative = true,
+      updated_at = now()
+  where id = p_character_id
+  returning * into selected_character;
+
+  return selected_character;
+end;
+$$;
+
+grant execute on function public.set_representative_character(integer, uuid) to anon;

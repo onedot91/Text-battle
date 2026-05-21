@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { checkFirestoreConnection } from '../services/firebaseStatusService';
+import { checkSupabaseConnection } from '../services/supabaseStatusService';
 import { isGeminiConfigured } from '../services/geminiStatusService';
 
 type LayoutProps = {
@@ -8,20 +8,20 @@ type LayoutProps = {
   onHome: () => void;
 };
 
-type FirestoreStatus = 'checking' | 'connected' | 'disconnected';
+type SupabaseStatus = 'checking' | 'connected' | 'disconnected';
 
 export function Layout({ children, isHome, onHome }: LayoutProps) {
-  const [firestoreStatus, setFirestoreStatus] = useState<FirestoreStatus>('checking');
+  const [supabaseStatus, setSupabaseStatus] = useState<SupabaseStatus>('checking');
 
   useEffect(() => {
     let isMounted = true;
     const timeoutId = window.setTimeout(() => {
-      checkFirestoreConnection()
+      checkSupabaseConnection()
         .then(() => {
-          if (isMounted) setFirestoreStatus('connected');
+          if (isMounted) setSupabaseStatus('connected');
         })
         .catch(() => {
-          if (isMounted) setFirestoreStatus('disconnected');
+          if (isMounted) setSupabaseStatus('disconnected');
         });
     }, 300);
 
@@ -32,9 +32,9 @@ export function Layout({ children, isHome, onHome }: LayoutProps) {
   }, []);
 
   const statusClass =
-    firestoreStatus === 'connected'
+    supabaseStatus === 'connected'
       ? 'bg-emerald-500/70 shadow-[0_0_18px_rgba(16,185,129,0.5)]'
-      : firestoreStatus === 'disconnected'
+      : supabaseStatus === 'disconnected'
         ? 'bg-rose-500/50 shadow-[0_0_16px_rgba(244,63,94,0.35)]'
         : 'animate-pulse bg-slate-400/40 shadow-[0_0_14px_rgba(100,116,139,0.25)]';
   const geminiStatusClass = isGeminiConfigured()
@@ -48,7 +48,7 @@ export function Layout({ children, isHome, onHome }: LayoutProps) {
           <div className="flex items-center gap-3">
             <div className="text-3xl font-black text-sky-950">캐릭터 문단 배틀</div>
             <span
-              aria-label="Firestore connection status"
+              aria-label="Supabase connection status"
               className={`mt-1 h-3 w-3 rounded-full opacity-70 blur-[0.2px] ${statusClass}`}
             />
             <span
