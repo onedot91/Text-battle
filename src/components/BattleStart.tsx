@@ -35,7 +35,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
       return;
     }
     if (myNumber === Number(opponentNumber)) {
-      setError('두 번호가 같으면 배틀할 수 없어요.');
+      setError('같은 번호와는 배틀할 수 없어요.');
       return;
     }
 
@@ -45,6 +45,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
         getRepresentativeCharacter(myNumber),
         getRepresentativeCharacter(Number(opponentNumber)),
       ]);
+
       if (!characterA || !characterB) {
         setError('대표 캐릭터를 먼저 정해 주세요.');
         return;
@@ -52,6 +53,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
 
       const situation = pickRandomSituation();
       let result: BattleResult;
+
       try {
         result = await generateBattleWithGemini(characterA, characterB, situation);
       } catch {
@@ -72,11 +74,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
         rewrite_tip: result.rewriteTip,
       };
 
-      try {
-        await createBattleRecord(record);
-      } catch {
-        setNotice('기록 저장 실패');
-      }
+      void createBattleRecord(record).catch(() => setNotice('기록 저장 실패'));
       onResult({ characterA, characterB, situation, result });
     } catch {
       setError('데이터를 불러오지 못했습니다.');

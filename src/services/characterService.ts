@@ -49,6 +49,17 @@ async function getCharacterById(characterId: string) {
   return toCharacter(snapshot);
 }
 
+function createOptimisticCharacter(id: string, input: CharacterInput, isRepresentative: boolean): Character {
+  const now = new Date().toISOString();
+  return {
+    id,
+    ...input,
+    is_representative: isRepresentative,
+    created_at: now,
+    updated_at: now,
+  };
+}
+
 export async function getCharactersByStudentNumber(studentNumber: number) {
   const snapshot = await getDocs(
     query(charactersCollection, where('student_number', '==', studentNumber), orderBy('created_at', 'asc')),
@@ -65,24 +76,30 @@ export async function getAllCharacters() {
 
 export async function createCharacter(input: CharacterInput) {
   const existing = await getCharactersByStudentNumber(input.student_number);
+  const isRepresentative = existing.length === 0;
   const reference = await addDoc(charactersCollection, {
     ...input,
-    is_representative: existing.length === 0,
+    is_representative: isRepresentative,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
   });
   return {
-    character: await getCharacterById(reference.id),
-    becameRepresentative: existing.length === 0,
+    character: createOptimisticCharacter(reference.id, input, isRepresentative),
+    becameRepresentative: isRepresentative,
   };
 }
 
 export async function updateCharacter(characterId: string, updates: Partial<CharacterInput> & { is_representative?: boolean }) {
+  const existing = await getCharacterById(characterId);
   await updateDoc(doc(db, 'characters', characterId), {
     ...updates,
     updated_at: serverTimestamp(),
   });
-  return getCharacterById(characterId);
+  return {
+    ...existing,
+    ...updates,
+    updated_at: new Date().toISOString(),
+  };
 }
 
 export async function setRepresentativeCharacter(studentNumber: number, characterId: string) {

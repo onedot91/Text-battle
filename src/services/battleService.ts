@@ -16,6 +16,7 @@ import type { BattleRecord, BattleRecordInput, BattleResult, Character, Situatio
 const battleRecordsCollection = collection(db, 'battle_records');
 const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 const geminiModel = 'gemini-2.5-flash';
+const geminiTimeoutMs = 8000;
 
 function timestampToString(value: Timestamp | string | null | undefined) {
   if (!value) return new Date().toISOString();
@@ -117,11 +118,15 @@ export async function generateBattleWithGemini(characterA: Character, characterB
     throw new Error('Gemini API key is missing.');
   }
 
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), geminiTimeoutMs);
+
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({
         contents: [{ parts: [{ text: buildPrompt(characterA, characterB, situation) }] }],
         generationConfig: {
@@ -130,7 +135,7 @@ export async function generateBattleWithGemini(characterA: Character, characterB
         },
       }),
     },
-  );
+  ).finally(() => window.clearTimeout(timeoutId));
 
   if (!response.ok) {
     throw new Error(`Gemini request failed: ${response.status}`);

@@ -5,29 +5,29 @@ import { isGeminiConfigured } from '../services/geminiStatusService';
 type LayoutProps = {
   children: ReactNode;
   isHome: boolean;
-  studentNumber: number;
   onHome: () => void;
-  onOpenNumber: () => void;
 };
 
 type FirestoreStatus = 'checking' | 'connected' | 'disconnected';
 
-export function Layout({ children, isHome, studentNumber, onHome, onOpenNumber }: LayoutProps) {
+export function Layout({ children, isHome, onHome }: LayoutProps) {
   const [firestoreStatus, setFirestoreStatus] = useState<FirestoreStatus>('checking');
 
   useEffect(() => {
     let isMounted = true;
-
-    checkFirestoreConnection()
-      .then(() => {
-        if (isMounted) setFirestoreStatus('connected');
-      })
-      .catch(() => {
-        if (isMounted) setFirestoreStatus('disconnected');
-      });
+    const timeoutId = window.setTimeout(() => {
+      checkFirestoreConnection()
+        .then(() => {
+          if (isMounted) setFirestoreStatus('connected');
+        })
+        .catch(() => {
+          if (isMounted) setFirestoreStatus('disconnected');
+        });
+    }, 300);
 
     return () => {
       isMounted = false;
+      window.clearTimeout(timeoutId);
     };
   }, []);
 
@@ -56,14 +56,7 @@ export function Layout({ children, isHome, studentNumber, onHome, onOpenNumber }
               className={`mt-1 h-3 w-3 rounded-full opacity-70 blur-[0.2px] ${geminiStatusClass}`}
             />
           </div>
-          {isHome ? (
-            <button
-              className="rounded-lg bg-sky-700 px-6 py-4 text-xl font-black text-white hover:bg-sky-800"
-              onClick={onOpenNumber}
-            >
-              {studentNumber}번 설정
-            </button>
-          ) : (
+          {!isHome && (
             <button
               className="rounded-lg bg-sky-700 px-6 py-4 text-xl font-black text-white hover:bg-sky-800"
               onClick={onHome}
