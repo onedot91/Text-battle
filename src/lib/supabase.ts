@@ -53,8 +53,19 @@ type Database = {
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
+const isValidHttpUrl = (value: string | undefined) => {
+  if (!value) return false;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.protocol === 'http:';
+  } catch {
+    return false;
+  }
+};
+
 export const isSupabaseConfigured =
-  Boolean(supabaseUrl) &&
+  isValidHttpUrl(supabaseUrl) &&
   Boolean(supabaseAnonKey) &&
   supabaseUrl !== 'https://your-project-ref.supabase.co' &&
   supabaseAnonKey !== 'your-supabase-anon-key';
