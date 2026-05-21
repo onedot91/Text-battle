@@ -71,39 +71,38 @@ export function TeacherDashboard() {
     <div className="space-y-6">
       <section className="rounded-lg bg-white p-6 shadow-sm">
         <h2 className="text-3xl font-black text-sky-950">교사용 관리</h2>
-        <p className="mt-3 text-lg font-bold text-slate-700">MVP에서는 비밀번호 없이 접근할 수 있습니다.</p>
         <button className="mt-4 rounded-lg bg-sky-700 px-5 py-3 text-lg font-bold text-white hover:bg-sky-800" onClick={() => void loadData()}>
           새로고침
         </button>
       </section>
-      {isLoading && <LoadingMessage message="관리 데이터를 불러오는 중입니다." />}
+      {isLoading && <LoadingMessage message="불러오는 중" />}
       <ErrorMessage message={error} />
       <section className="rounded-lg bg-white p-6 shadow-sm">
-        <h3 className="mb-4 text-2xl font-black text-slate-900">학생 번호별 보기</h3>
+        <h3 className="mb-4 text-2xl font-black text-slate-900">번호별</h3>
         <div className="grid gap-3 md:grid-cols-2">
           {summaries.map(([studentNumber, summary]) => (
             <div key={studentNumber} className="rounded-lg border-2 border-slate-100 p-4 text-lg">
               <p><strong>{studentNumber}번</strong></p>
-              <p>캐릭터 수: {summary.count}</p>
-              <p>대표 캐릭터: {summary.representative ? summary.representative.name : '없음'}</p>
+              <p>수: {summary.count}</p>
+              <p>대표: {summary.representative ? summary.representative.name : '없음'}</p>
             </div>
           ))}
         </div>
       </section>
       <section className="rounded-lg bg-white p-6 shadow-sm">
-        <h3 className="mb-4 text-2xl font-black text-slate-900">전체 캐릭터 목록</h3>
+        <h3 className="mb-4 text-2xl font-black text-slate-900">전체 캐릭터</h3>
         <div className="space-y-4">
           {characters.map((character) => (
             <div key={character.id} className="rounded-lg border-2 border-slate-100 p-4">
               <div className="flex flex-wrap items-center gap-3">
                 <strong className="text-xl">{character.student_number}번 {character.name}</strong>
-                {character.is_representative && <span className="rounded-full bg-yellow-200 px-3 py-1 font-black text-yellow-900">★ 대표 캐릭터</span>}
+                {character.is_representative && <span className="rounded-full bg-yellow-200 px-3 py-1 font-black text-yellow-900">★ 대표</span>}
               </div>
               <p className="mt-2 text-lg leading-8">{getTopicSentence(character)}</p>
               <div className="mt-3 flex flex-wrap gap-3">
                 {!character.is_representative && (
                   <button className="rounded-lg bg-yellow-500 px-4 py-2 font-bold text-white" onClick={() => void handleRepresentative(character)}>
-                    대표 캐릭터로 정하기
+                    대표로 정하기
                   </button>
                 )}
                 <button className="rounded-lg bg-red-600 px-4 py-2 font-bold text-white" onClick={() => void handleDelete(character)}>
@@ -116,7 +115,7 @@ export function TeacherDashboard() {
       </section>
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-lg bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-2xl font-black text-slate-900">최근 배틀 기록</h3>
+          <h3 className="mb-4 text-2xl font-black text-slate-900">최근 배틀</h3>
           <div className="space-y-3">
             {battleRecords.map((record) => (
               <div key={record.id} className="rounded-lg bg-slate-50 p-4 text-lg leading-7">
@@ -127,7 +126,7 @@ export function TeacherDashboard() {
           </div>
         </div>
         <div className="rounded-lg bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-2xl font-black text-slate-900">고쳐쓰기 기록</h3>
+          <h3 className="mb-4 text-2xl font-black text-slate-900">고쳐쓰기</h3>
           <div className="space-y-3">
             {rewriteLogs.map((log) => (
               <div key={log.id} className="rounded-lg bg-slate-50 p-4 text-lg leading-7">

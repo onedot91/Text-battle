@@ -5,7 +5,7 @@ type CharacterTextSource = Pick<
   'name' | 'ability_blank' | 'support1_blank' | 'support2_blank' | 'support3_blank'
 >;
 
-const safeName = (character: Pick<CharacterTextSource, 'name'>) => character.name || '내 캐릭터';
+const safeName = (character: Pick<CharacterTextSource, 'name'>) => character.name || '캐릭터';
 
 export function getTopicSentence(character: CharacterTextSource) {
   return `내 캐릭터 ${safeName(character)}은/는 ${character.ability_blank} 능력을 가진 캐릭터입니다.`;
@@ -16,11 +16,11 @@ export function getSupportSentence1(character: CharacterTextSource) {
 }
 
 export function getSupportSentence2(character: CharacterTextSource) {
-  return `${safeName(character)}은/는 ${character.support2_blank} 때 힘을 발휘합니다.`;
+  return `이 능력은 ${character.support2_blank} 때 필요합니다.`;
 }
 
 export function getSupportSentence3(character: CharacterTextSource) {
-  return `${safeName(character)}은/는 그 능력으로 ${character.support3_blank}을/를 도와줍니다.`;
+  return `${safeName(character)}은/는 이 능력으로 ${character.support3_blank}을/를 도와줍니다.`;
 }
 
 export function getFullParagraph(character: CharacterTextSource) {

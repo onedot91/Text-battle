@@ -1,79 +1,113 @@
-import { supabase } from '../lib/supabase';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
+  writeBatch,
+  type DocumentData,
+  type DocumentSnapshot,
+  type QueryDocumentSnapshot,
+  type Timestamp,
+} from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import type { Character, CharacterInput } from '../types';
 
+const charactersCollection = collection(db, 'characters');
+
+function timestampToString(value: Timestamp | string | null | undefined) {
+  if (!value) return new Date().toISOString();
+  if (typeof value === 'string') return value;
+  return value.toDate().toISOString();
+}
+
+function toCharacter(snapshot: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): Character {
+  const data = snapshot.data() || {};
+  return {
+    id: snapshot.id,
+    student_number: Number(data.student_number),
+    name: String(data.name || ''),
+    ability_blank: String(data.ability_blank || ''),
+    support1_blank: String(data.support1_blank || ''),
+    support2_blank: String(data.support2_blank || ''),
+    support3_blank: String(data.support3_blank || ''),
+    is_representative: Boolean(data.is_representative),
+    created_at: timestampToString(data.created_at),
+    updated_at: timestampToString(data.updated_at),
+  };
+}
+
+async function getCharacterById(characterId: string) {
+  const snapshot = await getDoc(doc(db, 'characters', characterId));
+  if (!snapshot.exists()) throw new Error('Character not found.');
+  return toCharacter(snapshot);
+}
+
 export async function getCharactersByStudentNumber(studentNumber: number) {
-  const { data, error } = await supabase
-    .from('characters')
-    .select('*')
-    .eq('student_number', studentNumber)
-    .order('created_at', { ascending: true });
-  if (error) throw error;
-  return data as Character[];
+  const snapshot = await getDocs(
+    query(charactersCollection, where('student_number', '==', studentNumber), orderBy('created_at', 'asc')),
+  );
+  return snapshot.docs.map(toCharacter);
 }
 
 export async function getAllCharacters() {
-  const { data, error } = await supabase
-    .from('characters')
-    .select('*')
-    .order('student_number', { ascending: true })
-    .order('created_at', { ascending: true });
-  if (error) throw error;
-  return data as Character[];
+  const snapshot = await getDocs(
+    query(charactersCollection, orderBy('student_number', 'asc'), orderBy('created_at', 'asc')),
+  );
+  return snapshot.docs.map(toCharacter);
 }
 
 export async function createCharacter(input: CharacterInput) {
   const existing = await getCharactersByStudentNumber(input.student_number);
-  const { data, error } = await supabase
-    .from('characters')
-    .insert({ ...input, is_representative: existing.length === 0 })
-    .select()
-    .single();
-  if (error) throw error;
-  return { character: data as Character, becameRepresentative: existing.length === 0 };
+  const reference = await addDoc(charactersCollection, {
+    ...input,
+    is_representative: existing.length === 0,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  });
+  return {
+    character: await getCharacterById(reference.id),
+    becameRepresentative: existing.length === 0,
+  };
 }
 
 export async function updateCharacter(characterId: string, updates: Partial<CharacterInput> & { is_representative?: boolean }) {
-  const { data, error } = await supabase
-    .from('characters')
-    .update(updates)
-    .eq('id', characterId)
-    .select()
-    .single();
-  if (error) throw error;
-  return data as Character;
+  await updateDoc(doc(db, 'characters', characterId), {
+    ...updates,
+    updated_at: serverTimestamp(),
+  });
+  return getCharacterById(characterId);
 }
 
 export async function setRepresentativeCharacter(studentNumber: number, characterId: string) {
-  const reset = await supabase
-    .from('characters')
-    .update({ is_representative: false })
-    .eq('student_number', studentNumber);
-  if (reset.error) throw reset.error;
+  const snapshot = await getDocs(query(charactersCollection, where('student_number', '==', studentNumber)));
+  const selected = snapshot.docs.find((item) => item.id === characterId);
+  if (!selected) throw new Error('Representative character not found.');
 
-  const selected = await supabase
-    .from('characters')
-    .update({ is_representative: true })
-    .eq('id', characterId)
-    .eq('student_number', studentNumber)
-    .select()
-    .single();
-  if (selected.error) throw selected.error;
-  return selected.data as Character;
+  const batch = writeBatch(db);
+  snapshot.docs.forEach((item) => {
+    batch.update(item.ref, {
+      is_representative: item.id === characterId,
+      updated_at: serverTimestamp(),
+    });
+  });
+  await batch.commit();
+  return getCharacterById(characterId);
 }
 
 export async function deleteCharacter(characterId: string) {
-  const { data: character, error: getError } = await supabase
-    .from('characters')
-    .select('*')
-    .eq('id', characterId)
-    .single();
-  if (getError) throw getError;
+  const character = await getCharacterById(characterId);
 
-  const { error } = await supabase.from('characters').delete().eq('id', characterId);
-  if (error) throw error;
+  await deleteDoc(doc(db, 'characters', characterId));
 
-  if ((character as Character).is_representative) {
-    const remaining = await getCharactersByStudentNumber((character as Character).student_number);
+  if (character.is_representative) {
+    const remaining = await getCharactersByStudentNumber(character.student_number);
     if (remaining.length > 0) {
       await setRepresentativeCharacter(remaining[0].student_number, remaining[0].id);
     }
@@ -81,12 +115,12 @@ export async function deleteCharacter(characterId: string) {
 }
 
 export async function getRepresentativeCharacter(studentNumber: number) {
-  const { data, error } = await supabase
-    .from('characters')
-    .select('*')
-    .eq('student_number', studentNumber)
-    .eq('is_representative', true)
-    .maybeSingle();
-  if (error) throw error;
-  return data as Character | null;
+  const snapshot = await getDocs(
+    query(
+      charactersCollection,
+      where('student_number', '==', studentNumber),
+      where('is_representative', '==', true),
+    ),
+  );
+  return snapshot.empty ? null : toCharacter(snapshot.docs[0]);
 }

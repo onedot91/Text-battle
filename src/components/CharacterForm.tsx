@@ -2,13 +2,15 @@ import { FormEvent, useState } from 'react';
 import type { Character, CharacterInput } from '../types';
 import { createCharacter, updateCharacter } from '../services/characterService';
 import { validateBlankText, validateCharacterName, validateStudentNumber } from '../utils/validators';
-import { SentencePreview } from './SentencePreview';
 import { ErrorMessage } from './ErrorMessage';
 
 type CharacterFormProps = {
+  initialStudentNumber?: number;
   editingCharacter?: Character | null;
   onSaved?: () => void;
 };
+
+type EditableCharacterField = Exclude<keyof CharacterInput, 'student_number'>;
 
 const emptyForm: CharacterInput = {
   student_number: 1,
@@ -19,7 +21,16 @@ const emptyForm: CharacterInput = {
   support3_blank: '',
 };
 
-export function CharacterForm({ editingCharacter, onSaved }: CharacterFormProps) {
+const blankClass =
+  'mx-1 my-1 inline-block w-[clamp(10rem,22vw,19rem)] rounded-md border-0 border-b-4 border-slate-300 bg-slate-50 px-3 py-2 align-baseline text-2xl font-bold text-sky-950 focus:border-sky-600';
+
+const nameBlankClass =
+  'mx-1 my-1 inline-block w-[clamp(8rem,14vw,13rem)] rounded-md border-0 border-b-4 border-sky-300 bg-sky-50 px-3 py-2 align-baseline text-2xl font-bold text-sky-950 focus:border-sky-600';
+
+const namePreviewClass =
+  'mx-1 inline-block min-w-20 border-b-4 border-sky-200 px-2 text-center font-bold text-sky-950';
+
+export function CharacterForm({ initialStudentNumber = 1, editingCharacter, onSaved }: CharacterFormProps) {
   const [form, setForm] = useState<CharacterInput>(
     editingCharacter
       ? {
@@ -30,16 +41,16 @@ export function CharacterForm({ editingCharacter, onSaved }: CharacterFormProps)
           support2_blank: editingCharacter.support2_blank,
           support3_blank: editingCharacter.support3_blank,
         }
-      : emptyForm,
+      : { ...emptyForm, student_number: initialStudentNumber },
   );
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const setField = (field: keyof CharacterInput, value: string) => {
+  const setField = (field: EditableCharacterField, value: string) => {
     setForm((current) => ({
       ...current,
-      [field]: field === 'student_number' ? Number(value) : value,
+      [field]: value,
     }));
   };
 
@@ -59,6 +70,7 @@ export function CharacterForm({ editingCharacter, onSaved }: CharacterFormProps)
     event.preventDefault();
     setError('');
     setMessage('');
+
     const validationError = validate();
     if (validationError) {
       setError(validationError);
@@ -69,66 +81,90 @@ export function CharacterForm({ editingCharacter, onSaved }: CharacterFormProps)
     try {
       if (editingCharacter) {
         await updateCharacter(editingCharacter.id, form);
-        setMessage('캐릭터를 수정했습니다.');
+        setMessage('수정되었어요.');
       } else {
         const result = await createCharacter(form);
-        setMessage(
-          result.becameRepresentative
-            ? '캐릭터가 등록되었습니다. 대표 캐릭터로 설정되었습니다.'
-            : '캐릭터가 등록되었습니다.',
-        );
-        setForm(emptyForm);
+        setMessage(result.becameRepresentative ? '등록되었어요. 대표 캐릭터예요.' : '등록되었어요.');
+        setForm({ ...emptyForm, student_number: initialStudentNumber });
       }
       onSaved?.();
     } catch {
-      setError('캐릭터를 저장하지 못했습니다.');
+      setError('저장하지 못했어요.');
     } finally {
       setIsSaving(false);
     }
   };
 
+  const namePreview = form.name;
+
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+    <div className="mx-auto max-w-6xl">
       <form className="rounded-lg bg-white p-6 shadow-sm" onSubmit={handleSubmit}>
-        <h2 className="mb-5 text-3xl font-black text-sky-950">{editingCharacter ? '캐릭터 수정하기' : '캐릭터 등록하기'}</h2>
-        <p className="mb-5 rounded-lg bg-amber-50 p-4 text-lg font-bold text-amber-900">
-          능력은 다른 사람을 해치는 능력이 아니라 문제를 해결하거나 누군가를 돕는 능력이어야 해요.
-        </p>
-        <div className="space-y-5">
-          <label className="block text-xl font-bold">
-            학생 번호
-            <input className="mt-2 w-full rounded-lg border-2 border-slate-200 px-4 py-3 text-xl" type="number" min="1" max="99" value={form.student_number} disabled={Boolean(editingCharacter)} onChange={(event) => setField('student_number', event.target.value)} />
-          </label>
-          <label className="block text-xl font-bold">
-            캐릭터 이름
-            <input className="mt-2 w-full rounded-lg border-2 border-slate-200 px-4 py-3 text-xl" maxLength={12} value={form.name} onChange={(event) => setField('name', event.target.value)} />
-          </label>
-          <label className="block text-xl font-bold">
-            중심문장 빈칸: 능력
-            <input className="mt-2 w-full rounded-lg border-2 border-slate-200 px-4 py-3 text-xl" maxLength={40} value={form.ability_blank} onChange={(event) => setField('ability_blank', event.target.value)} />
-          </label>
-          <label className="block text-xl font-bold">
-            뒷받침문장 1 빈칸: 할 수 있는 일
-            <input className="mt-2 w-full rounded-lg border-2 border-slate-200 px-4 py-3 text-xl" maxLength={40} value={form.support1_blank} onChange={(event) => setField('support1_blank', event.target.value)} />
-          </label>
-          <label className="block text-xl font-bold">
-            뒷받침문장 2 빈칸: 힘을 발휘하는 때
-            <input className="mt-2 w-full rounded-lg border-2 border-slate-200 px-4 py-3 text-xl" maxLength={40} value={form.support2_blank} onChange={(event) => setField('support2_blank', event.target.value)} />
-          </label>
-          <label className="block text-xl font-bold">
-            뒷받침문장 3 빈칸: 도와주는 대상
-            <input className="mt-2 w-full rounded-lg border-2 border-slate-200 px-4 py-3 text-xl" maxLength={40} value={form.support3_blank} onChange={(event) => setField('support3_blank', event.target.value)} />
-          </label>
-        </div>
+        <h2 className="mb-6 text-3xl font-black text-sky-950">
+          {editingCharacter ? '캐릭터 수정하기' : '캐릭터 등록하기'}
+        </h2>
+
+        <section className="rounded-lg border-2 border-slate-100 bg-white p-6">
+          <p className="text-2xl leading-[4.2rem] tracking-normal">
+            내 캐릭터
+            <input
+              aria-label="캐릭터 이름"
+              className={nameBlankClass}
+              maxLength={12}
+              value={form.name}
+              onChange={(event) => setField('name', event.target.value)}
+            />
+            은/는
+            <input
+              className={blankClass}
+              maxLength={40}
+              value={form.ability_blank}
+              onChange={(event) => setField('ability_blank', event.target.value)}
+            />
+            능력을 가진 캐릭터입니다.
+            <span className="mx-2 inline-block h-2 w-2 rounded-full bg-slate-300 align-middle" />
+            <span className={namePreviewClass}>{namePreview}</span>
+            은/는
+            <input
+              className={blankClass}
+              maxLength={40}
+              value={form.support1_blank}
+              onChange={(event) => setField('support1_blank', event.target.value)}
+            />
+            할 수 있습니다.
+            <span className="mx-2 inline-block h-2 w-2 rounded-full bg-slate-300 align-middle" />
+            이 능력은
+            <input
+              className={blankClass}
+              maxLength={40}
+              value={form.support2_blank}
+              onChange={(event) => setField('support2_blank', event.target.value)}
+            />
+            때 필요합니다.
+            <span className="mx-2 inline-block h-2 w-2 rounded-full bg-slate-300 align-middle" />
+            <span className={namePreviewClass}>{namePreview}</span>
+            은/는 이 능력으로
+            <input
+              className={blankClass}
+              maxLength={40}
+              value={form.support3_blank}
+              onChange={(event) => setField('support3_blank', event.target.value)}
+            />
+            을/를 도와줍니다.
+          </p>
+        </section>
+
         <div className="mt-6 space-y-4">
-          <button className="w-full rounded-lg bg-sky-700 px-6 py-4 text-2xl font-black text-white hover:bg-sky-800" disabled={isSaving}>
+          <button
+            className="w-full rounded-lg bg-sky-700 px-6 py-4 text-2xl font-black text-white hover:bg-sky-800"
+            disabled={isSaving}
+          >
             {isSaving ? '저장 중...' : '저장하기'}
           </button>
           {message && <div className="rounded-lg bg-emerald-50 p-4 text-lg font-bold text-emerald-800">{message}</div>}
           <ErrorMessage message={error} />
         </div>
       </form>
-      <SentencePreview character={form} />
     </div>
   );
 }
