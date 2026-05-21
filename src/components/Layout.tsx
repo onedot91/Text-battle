@@ -4,6 +4,7 @@ import { checkGeminiConfiguration } from '../services/geminiStatusService';
 
 type LayoutProps = {
   children: ReactNode;
+  title?: string;
   isHome: boolean;
   onHome: () => void;
 };
@@ -11,7 +12,7 @@ type LayoutProps = {
 type SupabaseStatus = 'checking' | 'connected' | 'disconnected';
 type GeminiStatus = 'checking' | 'configured' | 'missing';
 
-export function Layout({ children, isHome, onHome }: LayoutProps) {
+export function Layout({ children, title = '캐릭터 문단 배틀', isHome, onHome }: LayoutProps) {
   const [supabaseStatus, setSupabaseStatus] = useState<SupabaseStatus>('checking');
   const [geminiStatus, setGeminiStatus] = useState<GeminiStatus>('checking');
 
@@ -59,7 +60,7 @@ export function Layout({ children, isHome, onHome }: LayoutProps) {
       <header className="border-b-4 border-sky-100 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="text-3xl font-black text-sky-950">캐릭터 문단 배틀</div>
+            <div className="text-3xl font-black text-sky-950">{title}</div>
             <span
               aria-label="Supabase connection status"
               className={`mt-1 h-3 w-3 rounded-full opacity-70 blur-[0.2px] ${statusClass}`}

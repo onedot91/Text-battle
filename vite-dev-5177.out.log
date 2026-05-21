@@ -1,0 +1,29 @@
+
+> character-paragraph-battle@0.1.0 dev
+> vite --host 127.0.0.1 --port 5177
+
+
+  [32m[1mVITE[22m v7.3.3[39m  [2mready in [0m[1m732[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5177[22m/[39m
+[2m오전 12:32:40[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:32:40[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:33:04[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:33:41[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m오전 12:33:57[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:34:04[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/TeacherDashboard.tsx, /src/components/BattleStart.tsx, /src/components/CharacterCard.tsx, /src/styles.css[22m
+[2m오전 12:34:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/BattleStart.tsx, /src/components/TeacherDashboard.tsx, /src/styles.css[22m
+[2m오전 12:34:45[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:34:49[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/TeacherDashboard.tsx, /src/components/BattleStart.tsx, /src/components/CharacterCard.tsx, /src/styles.css[22m
+[2m오전 12:34:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/BattleStart.tsx, /src/components/TeacherDashboard.tsx, /src/styles.css[22m
+[2m오전 12:35:32[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:38:42[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:39:26[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:42:13[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:42:40[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:43:36[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:44:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:46:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:47:32[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CharacterForm.tsx, /src/styles.css[22m
+[2m오전 12:48:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/Home.tsx, /src/styles.css[22m
+[2m오전 12:49:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/styles.css[22m

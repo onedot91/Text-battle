@@ -4,6 +4,7 @@ create table if not exists public.characters (
   id uuid primary key default gen_random_uuid(),
   student_number integer not null,
   name text not null,
+  subject_particle text not null default '는' check (subject_particle in ('은', '는')),
   ability_blank text not null,
   support1_blank text not null,
   support2_blank text not null,
@@ -12,6 +13,18 @@ create table if not exists public.characters (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.characters
+  add column if not exists subject_particle text not null default '는';
+
+alter table public.characters
+  alter column subject_particle set default '는';
+
+alter table public.characters
+  drop constraint if exists characters_subject_particle_check;
+
+alter table public.characters
+  add constraint characters_subject_particle_check check (subject_particle in ('은', '는'));
 
 create index if not exists characters_student_created_idx
   on public.characters (student_number, created_at);

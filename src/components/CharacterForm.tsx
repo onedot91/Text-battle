@@ -7,6 +7,7 @@ import { ErrorMessage } from './ErrorMessage';
 type CharacterFormProps = {
   initialStudentNumber?: number;
   editingCharacter?: Character | null;
+  showTitle?: boolean;
   onSaved?: () => void;
 };
 
@@ -15,6 +16,7 @@ type EditableCharacterField = Exclude<keyof CharacterInput, 'student_number'>;
 const emptyForm: CharacterInput = {
   student_number: 1,
   name: '',
+  subject_particle: '는',
   ability_blank: '',
   support1_blank: '',
   support2_blank: '',
@@ -22,20 +24,46 @@ const emptyForm: CharacterInput = {
 };
 
 const blankClass =
-  'mx-1 my-1 inline-block w-[clamp(10rem,22vw,19rem)] rounded-md border-0 border-b-4 border-slate-300 bg-slate-50 px-3 py-2 align-baseline text-2xl font-bold text-sky-950 focus:border-sky-600';
+  'mx-1 my-1 inline-block min-h-14 w-[clamp(10rem,22vw,19rem)] rounded-lg border-2 border-slate-200 bg-slate-50 px-4 py-2 text-center align-baseline text-2xl font-bold text-sky-950 shadow-[inset_0_-3px_0_rgba(148,163,184,0.35)] transition placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:shadow-[0_0_0_4px_rgba(14,165,233,0.12)]';
+
+const supportBlankClass =
+  'min-h-14 min-w-0 max-w-full rounded-lg border-2 border-slate-200 bg-slate-50 px-4 py-2 align-baseline text-2xl font-bold text-sky-950 shadow-[inset_0_-3px_0_rgba(148,163,184,0.35)] transition focus:border-sky-500 focus:bg-white focus:shadow-[0_0_0_4px_rgba(14,165,233,0.12)]';
+
+const supportLineClass = 'mt-3 flex items-center gap-2';
+
+const sentencePeriodClass = 'text-3xl font-bold text-sky-950';
 
 const nameBlankClass =
-  'mx-1 my-1 inline-block w-[clamp(8rem,14vw,13rem)] rounded-md border-0 border-b-4 border-sky-300 bg-sky-50 px-3 py-2 align-baseline text-2xl font-bold text-sky-950 focus:border-sky-600';
+  'min-h-14 w-[clamp(8rem,14vw,13rem)] border-0 bg-slate-50 px-4 py-2 text-center align-baseline text-2xl font-bold text-sky-950 placeholder:text-slate-400 focus:outline-none';
 
-const namePreviewClass =
-  'mx-1 inline-block min-w-20 border-b-4 border-sky-200 px-2 text-center font-bold text-sky-950';
+const particleSelectClass =
+  'min-h-14 border-0 bg-slate-50 px-3 py-2 align-baseline text-2xl font-black text-sky-950 focus:outline-none';
 
-export function CharacterForm({ initialStudentNumber = 1, editingCharacter, onSaved }: CharacterFormProps) {
+const nameParticleGroupClass =
+  'mx-1 my-1 inline-flex overflow-hidden rounded-lg border-2 border-slate-200 bg-slate-50 align-baseline shadow-[inset_0_-3px_0_rgba(148,163,184,0.35)] transition focus-within:border-sky-500 focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(14,165,233,0.12)]';
+
+const sentenceCardClass =
+  'rounded-lg border-2 border-slate-100 bg-white p-5 shadow-sm';
+
+const sentenceClass = 'mt-3 text-2xl leading-[4.2rem] tracking-normal';
+
+const topicTagClass =
+  'inline-flex rounded-full bg-sky-700 px-4 py-1 text-base font-black text-white';
+
+const supportTagClass =
+  'inline-flex rounded-full bg-emerald-100 px-4 py-1 text-base font-black text-emerald-800';
+
+const getSupportBlankStyle = (value: string) => ({
+  width: `clamp(10rem, ${Math.max(10, value.length + 2)}ch, 100%)`,
+});
+
+export function CharacterForm({ initialStudentNumber = 1, editingCharacter, showTitle = true, onSaved }: CharacterFormProps) {
   const [form, setForm] = useState<CharacterInput>(
     editingCharacter
       ? {
           student_number: editingCharacter.student_number,
           name: editingCharacter.name,
+          subject_particle: editingCharacter.subject_particle || '는',
           ability_blank: editingCharacter.ability_blank,
           support1_blank: editingCharacter.support1_blank,
           support2_blank: editingCharacter.support2_blank,
@@ -95,63 +123,94 @@ export function CharacterForm({ initialStudentNumber = 1, editingCharacter, onSa
     }
   };
 
-  const namePreview = form.name;
-
   return (
     <div className="mx-auto max-w-6xl">
       <form className="rounded-lg bg-white p-6 shadow-sm" onSubmit={handleSubmit}>
-        <h2 className="mb-6 text-3xl font-black text-sky-950">
-          {editingCharacter ? '캐릭터 수정하기' : '캐릭터 등록하기'}
-        </h2>
+        {showTitle && (
+          <h2 className="mb-6 text-3xl font-black text-sky-950">
+            {editingCharacter ? '캐릭터 수정하기' : '캐릭터 등록하기'}
+          </h2>
+        )}
 
-        <section className="rounded-lg border-2 border-slate-100 bg-white p-6">
-          <p className="text-2xl leading-[4.2rem] tracking-normal">
-            내 캐릭터
-            <input
-              aria-label="캐릭터 이름"
-              className={nameBlankClass}
-              maxLength={12}
-              value={form.name}
-              onChange={(event) => setField('name', event.target.value)}
-            />
-            은/는
-            <input
-              className={blankClass}
-              maxLength={40}
-              value={form.ability_blank}
-              onChange={(event) => setField('ability_blank', event.target.value)}
-            />
-            능력을 가진 캐릭터입니다.
-            <span className="mx-2 inline-block h-2 w-2 rounded-full bg-slate-300 align-middle" />
-            <span className={namePreviewClass}>{namePreview}</span>
-            은/는
-            <input
-              className={blankClass}
-              maxLength={40}
-              value={form.support1_blank}
-              onChange={(event) => setField('support1_blank', event.target.value)}
-            />
-            할 수 있습니다.
-            <span className="mx-2 inline-block h-2 w-2 rounded-full bg-slate-300 align-middle" />
-            이 능력은
-            <input
-              className={blankClass}
-              maxLength={40}
-              value={form.support2_blank}
-              onChange={(event) => setField('support2_blank', event.target.value)}
-            />
-            때 필요합니다.
-            <span className="mx-2 inline-block h-2 w-2 rounded-full bg-slate-300 align-middle" />
-            <span className={namePreviewClass}>{namePreview}</span>
-            은/는 이 능력으로
-            <input
-              className={blankClass}
-              maxLength={40}
-              value={form.support3_blank}
-              onChange={(event) => setField('support3_blank', event.target.value)}
-            />
-            을/를 도와줍니다.
-          </p>
+        <section className="space-y-4" aria-label="캐릭터 문장 입력">
+          <article className={sentenceCardClass}>
+            <span className={topicTagClass}>중심문장</span>
+            <p className={sentenceClass}>
+              <span className={nameParticleGroupClass}>
+                <input
+                  aria-label="캐릭터 이름"
+                  className={nameBlankClass}
+                  maxLength={12}
+                  placeholder="캐릭터 이름"
+                  value={form.name}
+                  onChange={(event) => setField('name', event.target.value)}
+                />
+                <select
+                  aria-label="이름 뒤 조사"
+                  className={particleSelectClass}
+                  value={form.subject_particle}
+                  onChange={(event) => setField('subject_particle', event.target.value as CharacterInput['subject_particle'])}
+                >
+                  <option value="은">은</option>
+                  <option value="는">는</option>
+                </select>
+              </span>
+              <input
+                aria-label="캐릭터 중심 능력"
+                className={blankClass}
+                maxLength={40}
+                placeholder="능력 설명"
+                value={form.ability_blank}
+                onChange={(event) => setField('ability_blank', event.target.value)}
+              />
+              능력을 가진 캐릭터입니다.
+            </p>
+          </article>
+
+          <article className={sentenceCardClass}>
+            <span className={supportTagClass}>뒷받침문장</span>
+            <p className={supportLineClass}>
+              <input
+                aria-label="첫 번째 뒷받침 내용"
+                className={supportBlankClass}
+                maxLength={40}
+                style={getSupportBlankStyle(form.support1_blank)}
+                value={form.support1_blank}
+                onChange={(event) => setField('support1_blank', event.target.value)}
+              />
+              <span className={sentencePeriodClass}>.</span>
+            </p>
+          </article>
+
+          <article className={sentenceCardClass}>
+            <span className={supportTagClass}>뒷받침문장</span>
+            <p className={supportLineClass}>
+              <input
+                aria-label="두 번째 뒷받침 내용"
+                className={supportBlankClass}
+                maxLength={40}
+                style={getSupportBlankStyle(form.support2_blank)}
+                value={form.support2_blank}
+                onChange={(event) => setField('support2_blank', event.target.value)}
+              />
+              <span className={sentencePeriodClass}>.</span>
+            </p>
+          </article>
+
+          <article className={sentenceCardClass}>
+            <span className={supportTagClass}>뒷받침문장</span>
+            <p className={supportLineClass}>
+              <input
+                aria-label="세 번째 뒷받침 내용"
+                className={supportBlankClass}
+                maxLength={40}
+                style={getSupportBlankStyle(form.support3_blank)}
+                value={form.support3_blank}
+                onChange={(event) => setField('support3_blank', event.target.value)}
+              />
+              <span className={sentencePeriodClass}>.</span>
+            </p>
+          </article>
         </section>
 
         <div className="mt-6 space-y-4">

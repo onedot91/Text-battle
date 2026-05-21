@@ -8,6 +8,7 @@ export type Character = {
   id: string;
   student_number: number;
   name: string;
+  subject_particle: '은' | '는';
   ability_blank: string;
   support1_blank: string;
   support2_blank: string;
@@ -20,6 +21,7 @@ export type Character = {
 export type CharacterInput = {
   student_number: number;
   name: string;
+  subject_particle: '은' | '는';
   ability_blank: string;
   support1_blank: string;
   support2_blank: string;
