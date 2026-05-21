@@ -15,7 +15,9 @@ export function BattleResult({ characterA, characterB, situation, result }: Batt
           {characterA.name} VS {characterB.name}
         </h2>
         {result.usedFallback && (
-          <p className="mt-3 rounded-lg bg-amber-50 p-3 text-lg font-bold text-amber-900">임시 결과</p>
+          <p className="mt-3 rounded-lg bg-amber-50 p-3 text-lg font-bold text-amber-900">
+            임시 결과{result.fallbackReason ? `: ${result.fallbackReason}` : ''}
+          </p>
         )}
       </section>
 

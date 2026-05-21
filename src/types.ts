@@ -73,4 +73,5 @@ export type BattleResult = {
   };
   rewriteTip: string;
   usedFallback?: boolean;
+  fallbackReason?: string;
 };
