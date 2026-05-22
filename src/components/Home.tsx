@@ -132,22 +132,31 @@ export function Home({ studentNumber, onStudentNumberChange, onNavigate }: HomeP
             캐릭터 보기
           </button>
           <button
-            className="relative rounded-lg border-2 border-slate-200 bg-white px-5 py-4 text-xl font-black text-slate-900 transition hover:border-slate-400"
+            className="rounded-lg border-2 border-slate-200 bg-white px-5 py-4 text-xl font-black text-slate-900 transition hover:border-slate-400"
             onClick={() => onNavigate('history')}
           >
             기록 보기
             {incomingBattleCount > 0 && (
               <span className="ml-2 rounded-full bg-rose-600 px-2.5 py-1 text-sm font-black text-white">
-                알림 {incomingBattleCount}
+                새 알림 {incomingBattleCount}
               </span>
             )}
           </button>
         </div>
 
         {incomingBattleCount > 0 && (
-          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-5 py-4 text-lg font-black text-rose-900">
-            누군가 {studentNumber}번 캐릭터에게 배틀을 신청했습니다. 기록 보기에서 확인하세요.
-          </div>
+          <button
+            className="mt-4 flex w-full flex-col gap-1 rounded-lg border border-rose-200 bg-rose-50 px-5 py-4 text-left transition hover:border-rose-300 hover:bg-rose-100"
+            type="button"
+            onClick={() => onNavigate('history')}
+          >
+            <span className="text-lg font-black text-rose-900">
+              새 배틀 신청 {incomingBattleCount}개
+            </span>
+            <span className="text-base font-bold text-rose-800">
+              누군가 {studentNumber}번 캐릭터에게 배틀을 신청했습니다.
+            </span>
+          </button>
         )}
 
         {!representative && !isLoadingRepresentative && (

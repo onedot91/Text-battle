@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase';
 import type { Character, CharacterInput } from '../types';
 
+export const MAX_CHARACTERS_PER_STUDENT = 6;
+
 async function getCharacterById(characterId: string) {
   const { data, error } = await supabase.from('characters').select('*').eq('id', characterId).single();
   if (error || !data) throw new Error('Character not found.');
@@ -42,6 +44,10 @@ export async function getAllCharacters() {
 
 export async function createCharacter(input: CharacterInput) {
   const existing = await getCharactersByStudentNumber(input.student_number);
+  if (existing.length >= MAX_CHARACTERS_PER_STUDENT) {
+    throw new Error(`한 번호당 캐릭터는 ${MAX_CHARACTERS_PER_STUDENT}개까지 등록할 수 있습니다.`);
+  }
+
   const isRepresentative = existing.length === 0;
 
   const result = await supabase
