@@ -14,21 +14,22 @@ type CharacterTextSource = Pick<
 const safeName = (character: Pick<CharacterTextSource, 'name'>) => character.name || '캐릭터';
 const safeSubjectParticle = (character: Pick<CharacterTextSource, 'subject_particle'>) =>
   character.subject_particle || '는';
+const getSubject = (character: CharacterTextSource) => `${safeName(character)}${safeSubjectParticle(character)}`;
 
 export function getTopicSentence(character: CharacterTextSource) {
-  return `캐릭터 ${safeName(character)}${safeSubjectParticle(character)} ${character.ability_blank} 능력을 가진 캐릭터입니다.`;
+  return `${getSubject(character)} ${character.ability_blank} 능력을 가진 캐릭터입니다.`;
 }
 
 export function getSupportSentence1(character: CharacterTextSource) {
-  return `할 수 있는 일은 ${character.support1_blank}입니다.`;
+  return `${getSubject(character)} ${character.support1_blank} 수 있습니다.`;
 }
 
 export function getSupportSentence2(character: CharacterTextSource) {
-  return `필요한 상황은 ${character.support2_blank}입니다.`;
+  return `${getSubject(character)} ${character.support2_blank} 때 힘을 발휘합니다.`;
 }
 
 export function getSupportSentence3(character: CharacterTextSource) {
-  return `도움 대상이나 일은 ${character.support3_blank}입니다.`;
+  return `${safeName(character)}는 그 능력으로 ${character.support3_blank} 도와줍니다.`;
 }
 
 export function getFullParagraph(character: CharacterTextSource) {

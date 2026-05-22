@@ -11,6 +11,12 @@ const activeBattleRequests = new Set<number>();
 const opponentRouletteDurationMs = 3200;
 const situationRouletteDurationMs = 3600;
 const rouletteTickMs = 90;
+const storyLoadingMessages = [
+  '캐릭터 행동을 고르는 중',
+  '아슬아슬한 장면을 넣는 중',
+  '승부가 갈리는 순간을 만드는 중',
+  '마지막 문장을 다듬는 중',
+];
 
 type LoadingStep = 'opponent' | 'situation' | 'story';
 
@@ -26,6 +32,7 @@ type BattleStartProps = {
 
 type RoulettePanelProps = {
   title: string;
+  badge?: string;
   value: string;
   items: string[];
   isSpinning: boolean;
@@ -62,14 +69,21 @@ function getReelItems(items: string[], value: string) {
   return visibleItems;
 }
 
-function RoulettePanel({ title, value, items, isSpinning, tone }: RoulettePanelProps) {
+function RoulettePanel({ title, badge, value, items, isSpinning, tone }: RoulettePanelProps) {
   const classes = toneClasses[tone];
   const reelItems = getReelItems(items, value);
 
   return (
     <article className={`overflow-hidden rounded-lg border-2 p-5 ${classes.box}`}>
       <div className="flex items-center justify-between gap-3">
-        <p className={`text-lg font-black ${classes.label}`}>{title}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className={`text-lg font-black ${classes.label}`}>{title}</p>
+          {badge && (
+            <span className="rounded-full bg-white px-3 py-1 text-base font-black text-slate-800 shadow-sm ring-1 ring-slate-200">
+              {badge}
+            </span>
+          )}
+        </div>
         {isSpinning && (
           <span className="flex gap-1">
             <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-current opacity-40 [animation-delay:-180ms]" />
@@ -109,8 +123,10 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
   const [loadingStep, setLoadingStep] = useState<LoadingStep>('opponent');
   const [myCharacter, setMyCharacter] = useState<Character | null>(null);
   const [opponentName, setOpponentName] = useState('');
+  const [opponentNumber, setOpponentNumber] = useState<number | null>(null);
   const [situationTitle, setSituationTitle] = useState('');
   const [opponentReelItems, setOpponentReelItems] = useState<string[]>([]);
+  const [storyMessageIndex, setStoryMessageIndex] = useState(0);
   const situationReelItems = situations.map((situation) => situation.title);
   const myNumber = initialStudentNumber;
 
@@ -125,16 +141,19 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
       let index = 0;
       setOpponentReelItems(candidates.map((candidate) => candidate.name));
       setOpponentName(candidates[0]?.name || selectedCharacter.name);
+      setOpponentNumber(candidates[0]?.student_number || selectedCharacter.student_number);
 
       const intervalId = window.setInterval(() => {
         const candidate = candidates[index % candidates.length];
         setOpponentName(candidate.name);
+        setOpponentNumber(candidate.student_number);
         index += 1;
       }, rouletteTickMs);
 
       window.setTimeout(() => {
         window.clearInterval(intervalId);
         setOpponentName(selectedCharacter.name);
+        setOpponentNumber(selectedCharacter.student_number);
         resolve();
       }, opponentRouletteDurationMs);
     });
@@ -165,6 +184,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
     setNotice('');
     setMyCharacter(null);
     setOpponentName('');
+    setOpponentNumber(null);
     setSituationTitle('');
     setOpponentReelItems([]);
     setLoadingStep('opponent');
@@ -242,6 +262,19 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myNumber]);
 
+  useEffect(() => {
+    if (loadingStep !== 'story') {
+      setStoryMessageIndex(0);
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setStoryMessageIndex((current) => (current + 1) % storyLoadingMessages.length);
+    }, 1200);
+
+    return () => window.clearInterval(intervalId);
+  }, [loadingStep]);
+
   return (
     <div className="space-y-6">
       {isLoading && (
@@ -264,6 +297,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
           <div className="grid gap-5 p-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
             <RoulettePanel
               title="내 캐릭터"
+              badge={myCharacter ? `${myCharacter.student_number}번` : undefined}
               value={myCharacter?.name || '불러오는 중'}
               items={myCharacter ? [myCharacter.name] : ['불러오는 중']}
               isSpinning={false}
@@ -271,6 +305,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
             />
             <RoulettePanel
               title="상대 캐릭터"
+              badge={opponentNumber ? `${opponentNumber}번` : undefined}
               value={opponentName || '고르는 중'}
               items={opponentReelItems}
               isSpinning={loadingStep === 'opponent'}
@@ -287,6 +322,30 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
               tone="emerald"
             />
           </div>
+
+          {loadingStep === 'story' && (
+            <div className="px-6 pb-6">
+              <div className="story-loader overflow-hidden rounded-lg border-2 border-sky-200 bg-sky-50 p-5">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-lg font-black text-sky-700">이야기 생성 중</p>
+                    <p className="mt-2 text-2xl font-black text-slate-950">
+                      {storyLoadingMessages[storyMessageIndex]}
+                    </p>
+                  </div>
+                  <div className="flex items-end gap-1.5" aria-hidden="true">
+                    <span className="story-equalizer h-7 w-3 rounded-full bg-sky-500 [animation-delay:-360ms]" />
+                    <span className="story-equalizer h-10 w-3 rounded-full bg-rose-500 [animation-delay:-240ms]" />
+                    <span className="story-equalizer h-8 w-3 rounded-full bg-emerald-500 [animation-delay:-120ms]" />
+                    <span className="story-equalizer h-12 w-3 rounded-full bg-yellow-400" />
+                  </div>
+                </div>
+                <div className="mt-5 h-3 overflow-hidden rounded-full bg-white">
+                  <div className="story-progress h-full w-1/2 rounded-full bg-sky-500" />
+                </div>
+              </div>
+            </div>
+          )}
         </section>
       )}
       {notice && <div className="rounded-lg bg-amber-50 p-5 text-lg font-bold text-amber-900">{notice}</div>}

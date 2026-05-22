@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { BattleRecord, BattleRecordInput, BattleResult, Character, Situation } from '../types';
+import { getCharactersByStudentNumber } from './characterService';
 
 const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 const geminiModel = 'gemini-2.5-flash';
@@ -7,42 +8,60 @@ const geminiTimeoutMs = 35000;
 const shouldUseGeminiProxy = import.meta.env.PROD;
 
 function topicSentence(character: Character) {
-  return `캐릭터 ${character.name}${character.subject_particle || '는'} ${character.ability_blank} 능력을 가진 캐릭터입니다.`;
+  return `${character.name}${character.subject_particle || '는'} ${character.ability_blank} 능력을 가진 캐릭터입니다.`;
 }
 
 function supportSentences(character: Character) {
+  const subject = `${character.name}${character.subject_particle || '는'}`;
+
   return [
-    `할 수 있는 일은 ${character.support1_blank}입니다.`,
-    `필요한 상황은 ${character.support2_blank}입니다.`,
-    `도움 대상이나 일은 ${character.support3_blank}입니다.`,
+    `${subject} ${character.support1_blank} 수 있습니다.`,
+    `${subject} ${character.support2_blank} 때 힘을 발휘합니다.`,
+    `${character.name}는 그 능력으로 ${character.support3_blank} 도와줍니다.`,
   ];
 }
 
 function buildPrompt(characterA: Character, characterB: Character, situation: Situation) {
   return `
 너는 초등학교 3학년 국어 수업을 돕는 배틀 이야기 생성기다.
-목표는 학생들이 중심문장과 뒷받침문장의 관계를 이해하도록 돕는 것이다.
-강한 캐릭터가 아니라 주어진 상황을 더 잘 해결하는 캐릭터가 이긴다.
-승리 이유는 내부적으로 중심문장과 뒷받침문장을 근거로 판단한다.
-story에는 중심문장, 뒷받침문장, 능력 설명, 문장 근거 같은 수업 용어를 절대 쓰지 않는다.
-story에는 characterA와 characterB의 특징, 할 수 있는 일, 도와주는 방식이 행동과 장면으로 자연스럽게 드러나야 한다.
-캐릭터가 자신의 능력을 따옴표 안에서 그대로 말하거나 설명하게 하지 않는다.
-story에는 따옴표 대사를 되도록 쓰지 말고, 대사가 꼭 필요하면 짧고 자연스러운 생활 말투로만 쓴다.
-입력 문장을 그대로 복사하지 말고, 초등학교 3학년이 읽는 동화처럼 쉬운 말로 바꾸어 쓴다.
-두 캐릭터가 모두 상황 해결에 도움이 되도록 묘사하되, 마지막에는 누가 이겼는지 분명히 드러내라.
-한쪽이 압도적으로 지는 내용은 쓰지 않는다. 결과는 작은 차이, 한 걸음 차이, 마지막 순간의 선택처럼 아슬아슬하게 나타나야 한다.
-때때로 운, 우연한 기회, 예상 밖의 상황 때문에 이변이 일어날 수 있다. 단, 승리 캐릭터의 문장 근거와 완전히 어긋나면 안 된다.
-공격, 죽음, 상처를 주는 표현은 사용하지 않는다.
-캐릭터가 서로 놀리거나 다치게 하지 않는다.
-초등학교 3학년이 이해할 수 있는 쉬운 문장으로 쓴다.
-결과는 JSON으로만 반환한다. 마크다운을 사용하지 않는다.
+
+목표:
+- 학생이 입력한 중심문장과 뒷받침문장을 바탕으로 짧고 재미있는 한 편의 배틀 이야기를 만든다.
+- story에는 수업 용어를 쓰지 않는다. 금지어: 중심문장, 뒷받침문장, 능력 설명, 문장 근거, 문단.
+- 입력 문장을 그대로 복사하지 말고 행동으로 바꾸어 보여 준다.
+
+이야기 구조:
+1문장: ${situation.title}이 시작되는 장면을 구체적으로 연다.
+2문장: characterA가 자기 특징을 살려 먼저 시도한다.
+3문장: characterB가 다른 방식으로 따라붙는다.
+4문장: 승부가 갈릴 작은 문제가 생기고, 승리 캐릭터가 자기 특징에 맞게 해결한다.
+5문장: 누가 왜 이겼는지 자연스럽게 마무리한다.
+
+재미 장치:
+- story 안에 딱 한 번, 아슬아슬한 반전이나 작은 위기를 넣는다.
+- 가끔은 처음에 밀리던 캐릭터가 마지막에 역전해도 좋다.
+- 예: 거의 질 뻔함, 마지막 1초, 손에서 미끄러짐, 모두가 숨을 멈춤, 간발의 차이.
+- 감탄을 살리는 짧은 표현은 허용한다. 예: 아슬아슬하게, 간신히, 눈 깜짝할 사이에, 딱 그때.
+- 단, 상황에 없는 물건이나 마법 같은 사건은 만들지 않는다.
+
+작성 규칙:
+- story는 반드시 4~5문장으로 쓴다.
+- 한 문장은 너무 길게 쓰지 않는다.
+- 대사는 쓰지 않는다. 감탄 표현은 서술문 안에서만 쓴다.
+- 상황에 없는 물건이나 사건을 갑자기 만들지 않는다. 예: 동전, 카드, 마법, 심판의 특별 지시.
+- 캐릭터의 특징은 설명하지 말고 행동으로 보여 준다.
+- 두 캐릭터 모두 한 번씩 잘하는 모습을 보여 준다.
+- 승부는 한 가지 분명한 이유로 갈린다.
+- 공격, 죽음, 다침, 놀림은 쓰지 않는다.
+- 초등학교 3학년이 이해할 수 있는 쉬운 말로 쓴다.
+
+판정 규칙:
 승리 캐릭터는 characterA 또는 characterB 중 하나여야 한다.
-승패가 애매하면 상황과 더 직접적으로 연결되는 문장이 있는 캐릭터를 선택하되, 아주 가까운 승부처럼 표현한다.
-배틀 이야기는 5~6문장 정도로 작성한다.
-각 캐릭터의 특징이 이야기 속 행동으로 최소 두 번 이상 드러나게 한다.
-중간에는 두 캐릭터가 번갈아 장점을 보여 주는 장면을 넣어 여유 있게 전개한다.
-story 필드는 해설문이 아니라 이야기처럼 작성한다. 마지막 문장에는 승리 캐릭터 이름과 승리 결과가 자연스럽게 드러나야 한다.
-story 필드 금지 표현: "중심문장", "뒷받침문장", "능력으로", "능력은", "설명을 듣고", "문장처럼", 입력 문장을 따옴표로 직접 인용하는 표현.
+- 상황과 더 직접적으로 맞는 행동을 한 캐릭터가 이긴다.
+- 승패가 비슷하면 마지막 문제를 더 잘 처리한 캐릭터가 이긴다.
+- 역전승은 허용하지만, 승리 캐릭터의 입력 문장과 상황이 연결되어야 한다.
+
+결과는 JSON으로만 반환한다. 마크다운을 사용하지 않는다.
 
 상황:
 ${situation.text}
@@ -104,7 +123,8 @@ export async function generateBattleWithGemini(characterA: Character, characterB
     contents: [{ parts: [{ text: buildPrompt(characterA, characterB, situation) }] }],
     generationConfig: {
       responseMimeType: 'application/json',
-      temperature: 0.9,
+      temperature: 0.78,
+      topP: 0.9,
     },
   };
 
@@ -173,4 +193,67 @@ export async function getRecentBattleRecords(limit = 10) {
     .limit(limit);
   if (error) throw error;
   return data satisfies BattleRecord[];
+}
+
+export type StudentBattleRecord = BattleRecord & {
+  characterA?: Character;
+  characterB?: Character;
+  winnerCharacter?: Character;
+  mySide: 'A' | 'B';
+};
+
+export async function getBattleRecordsForStudentNumber(studentNumber: number) {
+  const myCharacters = await getCharactersByStudentNumber(studentNumber);
+  const myCharacterIds = myCharacters.map((character) => character.id);
+
+  if (myCharacterIds.length === 0) {
+    return [] satisfies StudentBattleRecord[];
+  }
+
+  const idList = myCharacterIds.join(',');
+  const { data: records, error } = await supabase
+    .from('battle_records')
+    .select('*')
+    .or(`character_a_id.in.(${idList}),character_b_id.in.(${idList})`)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  if (!records || records.length === 0) return [] satisfies StudentBattleRecord[];
+
+  const involvedCharacterIds = Array.from(
+    new Set(records.flatMap((record) => [record.character_a_id, record.character_b_id, record.winner_character_id])),
+  );
+
+  const { data: involvedCharacters, error: characterError } = await supabase
+    .from('characters')
+    .select('*')
+    .in('id', involvedCharacterIds);
+
+  if (characterError) throw characterError;
+
+  const characterMap = new Map((involvedCharacters || []).map((character) => [character.id, character]));
+  const myCharacterIdSet = new Set(myCharacterIds);
+
+  return records.map((record) => ({
+    ...record,
+    characterA: characterMap.get(record.character_a_id),
+    characterB: characterMap.get(record.character_b_id),
+    winnerCharacter: characterMap.get(record.winner_character_id),
+    mySide: myCharacterIdSet.has(record.character_a_id) ? 'A' : 'B',
+  })) satisfies StudentBattleRecord[];
+}
+
+export async function getIncomingBattleRecordCountForStudentNumber(studentNumber: number) {
+  const myCharacters = await getCharactersByStudentNumber(studentNumber);
+  const myCharacterIds = myCharacters.map((character) => character.id);
+
+  if (myCharacterIds.length === 0) return 0;
+
+  const { count, error } = await supabase
+    .from('battle_records')
+    .select('id', { count: 'exact', head: true })
+    .in('character_b_id', myCharacterIds);
+
+  if (error) throw error;
+  return count ?? 0;
 }

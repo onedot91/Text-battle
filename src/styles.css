@@ -63,3 +63,46 @@ textarea:focus-visible {
     transform: translateY(-88px);
   }
 }
+
+.story-loader {
+  animation: story-loader-pulse 1.35s ease-in-out infinite;
+}
+
+.story-progress {
+  animation: story-progress-slide 1.15s ease-in-out infinite;
+}
+
+.story-equalizer {
+  animation: story-equalizer-bounce 0.78s ease-in-out infinite;
+}
+
+@keyframes story-loader-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.14);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(14, 165, 233, 0.1);
+  }
+}
+
+@keyframes story-progress-slide {
+  0% {
+    transform: translateX(-105%);
+  }
+  100% {
+    transform: translateX(205%);
+  }
+}
+
+@keyframes story-equalizer-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.45);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}

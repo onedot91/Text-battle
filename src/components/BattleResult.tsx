@@ -8,7 +8,7 @@ type BattleResultProps = {
   result: BattleResultType;
 };
 
-const TYPE_SPEED_MS = 70;
+const TYPE_SPEED_MS = 48;
 
 export function BattleResult({ characterA, characterB, situation, result }: BattleResultProps) {
   const [visibleStory, setVisibleStory] = useState('');
@@ -46,14 +46,14 @@ export function BattleResult({ characterA, characterB, situation, result }: Batt
       <section className="rounded-lg bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="shrink-0 rounded-full bg-sky-100 px-4 py-2 text-lg font-black text-sky-900">
+            <span className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-lg font-black text-white">
               {characterA.student_number}번
             </span>
             <h2 className="truncate text-3xl font-black text-sky-950">{characterA.name}</h2>
           </div>
           <span className="text-2xl font-black text-slate-400">VS</span>
           <div className="flex min-w-0 items-center gap-3">
-            <span className="shrink-0 rounded-full bg-rose-100 px-4 py-2 text-lg font-black text-rose-900">
+            <span className="shrink-0 rounded-full bg-rose-600 px-4 py-2 text-lg font-black text-white">
               {characterB.student_number}번
             </span>
             <h2 className="truncate text-3xl font-black text-rose-950">{characterB.name}</h2>
@@ -66,8 +66,8 @@ export function BattleResult({ characterA, characterB, situation, result }: Batt
         )}
       </section>
 
-      <section className="flex flex-col gap-4 rounded-lg border-2 border-sky-100 bg-white p-6 sm:flex-row sm:items-center">
-        <span className="w-fit rounded-full bg-sky-100 px-4 py-2 text-lg font-black text-sky-900">
+      <section className="flex flex-col gap-4 rounded-lg border-2 border-emerald-100 bg-white p-6 sm:flex-row sm:items-center">
+        <span className="w-fit rounded-full bg-emerald-600 px-4 py-2 text-lg font-black text-white">
           상황
         </span>
         <p className="text-2xl font-black leading-8 text-slate-950">{situation.title}</p>

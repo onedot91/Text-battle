@@ -13,6 +13,14 @@ export function calculateKeywordScore(character: Character, situation: Situation
   }, 0);
 }
 
+function subject(character: Character) {
+  return `${character.name}${character.subject_particle || '는'}`;
+}
+
+function firstSupport(character: Character) {
+  return character.support1_blank.replace(/[.!?。！？]+$/g, '');
+}
+
 export function generateFallbackBattle(characterA: Character, characterB: Character, situation: Situation): BattleResult {
   const scoreA = calculateKeywordScore(characterA, situation);
   const scoreB = calculateKeywordScore(characterB, situation);
@@ -20,21 +28,25 @@ export function generateFallbackBattle(characterA: Character, characterB: Charac
   const luckB = Math.random() * 0.8;
   const totalA = scoreA + luckA;
   const totalB = scoreB + luckB;
-  const winner = totalA === totalB ? (Math.random() > 0.5 ? characterA : characterB) : totalA > totalB ? characterA : characterB;
+  const leadingCharacter = totalA === totalB ? (Math.random() > 0.5 ? characterA : characterB) : totalA > totalB ? characterA : characterB;
+  const trailingCharacter = leadingCharacter.id === characterA.id ? characterB : characterA;
+  const scoreGap = Math.abs(scoreA - scoreB);
+  const shouldReverse = scoreGap <= 1 && Math.random() < 0.28;
+  const winner = shouldReverse ? trailingCharacter : leadingCharacter;
   const loser = winner.id === characterA.id ? characterB : characterA;
   const winnerLabel = winner.id === characterA.id ? 'A' : 'B';
   const winnerScore = winner.id === characterA.id ? scoreA : scoreB;
   const loserScore = loser.id === characterA.id ? scoreA : scoreB;
-  const isUpset = winnerScore < loserScore;
+  const isUpset = shouldReverse || winnerScore < loserScore;
   const closeResult = Math.abs(totalA - totalB) < 0.8;
   const resultTurn = isUpset
-    ? '그때 마침 상황이 조금 바뀌면서 예상과 다르게 작은 이변이 일어났습니다.'
+    ? '마지막 순간, 모두가 숨을 멈출 만큼 뜻밖의 기회가 생겼습니다.'
     : closeResult
-      ? '두 방법이 모두 좋아서 결과는 마지막 순간까지 쉽게 정해지지 않았습니다.'
-      : '두 방법 모두 도움이 되었지만 상황에 조금 더 잘 맞는 쪽이 있었습니다.';
+      ? '끝까지 차이가 거의 나지 않아 결과를 알 수 없었습니다.'
+      : '딱 그때, 상황에 더 잘 맞는 방법이 분명해졌습니다.';
 
   return {
-    story: `${situation.text} ${characterA.name}은/는 먼저 친구들이 덜 걱정하도록 자신이 잘하는 일을 해 보았습니다. ${characterB.name}도 가만히 있지 않고 친구들에게 필요한 도움을 찾아 나섰습니다. 처음에는 ${characterA.name}의 방법이 친구들의 눈길을 끌었습니다. 곧이어 ${characterB.name}도 차분히 움직이며 상황을 조금씩 좋게 만들었습니다. ${loser.name}의 방법도 친구들에게 분명히 도움이 되었고, ${winner.name}의 방법도 마지막까지 힘을 냈습니다. ${resultTurn} 두 캐릭터는 끝까지 거의 비슷하게 상황을 해결해 나갔습니다. 마지막에는 ${winner.name}의 방법이 한 걸음 더 먼저 맞아떨어져서 가까스로 승리했습니다.`,
+    story: `${situation.title}이 시작되자 ${characterA.name}과 ${characterB.name}이 나란히 준비했습니다. ${subject(characterA)} ${characterA.ability_blank} 모습으로 먼저 앞서 나갔지만, ${subject(characterB)} ${characterB.ability_blank} 모습으로 눈 깜짝할 사이에 따라붙었습니다. ${resultTurn} ${subject(winner)} ${firstSupport(winner)} 점을 살려 마지막 고비를 아슬아슬하게 넘겼습니다. ${loser.name}도 끝까지 잘 버텼지만, ${winner.name}이 간발의 차이로 이겼습니다.`,
     winner: winnerLabel,
     winnerCharacterId: winner.id,
     winnerName: winner.name,

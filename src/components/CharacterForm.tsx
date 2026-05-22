@@ -15,7 +15,9 @@ type CharacterFormProps = {
 type EditableCharacterField = Exclude<keyof CharacterInput, 'student_number'>;
 const CHARACTER_NAME_MAX_LENGTH = 7;
 const ABILITY_MAX_LENGTH = 20;
-const SUPPORT_MAX_LENGTH = 50;
+const SUPPORT_ACTION_MAX_LENGTH = 18;
+const SUPPORT_SITUATION_MAX_LENGTH = 18;
+const SUPPORT_TARGET_MAX_LENGTH = 14;
 
 const emptyForm: CharacterInput = {
   student_number: 1,
@@ -34,6 +36,11 @@ const supportBlankClass =
   'col-start-1 row-start-1 min-h-14 w-full min-w-0 rounded-lg border-2 border-slate-200 bg-slate-50 px-4 py-2 align-baseline text-2xl font-bold text-sky-950 shadow-[inset_0_-3px_0_rgba(148,163,184,0.35)] transition focus:border-sky-500 focus:bg-white focus:shadow-[0_0_0_4px_rgba(14,165,233,0.12)]';
 
 const supportLineClass = 'mt-3 flex items-center gap-2';
+
+const supportSubjectClass =
+  'shrink-0 py-3 text-2xl font-black text-slate-950';
+
+const supportFixedTextClass = 'shrink-0 py-3 text-2xl font-bold text-slate-950';
 
 const supportInputSizerClass =
   'col-start-1 row-start-1 invisible min-h-14 min-w-40 max-w-full whitespace-pre rounded-lg border-2 px-4 py-2 text-2xl font-bold';
@@ -56,6 +63,8 @@ const supportSentenceCardClass =
   'ml-8 rounded-lg border-2 border-slate-100 border-l-8 border-l-emerald-100 bg-white p-5 shadow-sm';
 
 const sentenceClass = 'mt-3 flex flex-wrap items-center gap-2 text-2xl leading-[4.2rem] tracking-normal';
+
+const sentenceFixedTextClass = 'font-bold text-sky-950';
 
 const topicTagClass =
   'inline-flex rounded-full bg-sky-700 px-4 py-1 text-base font-black text-white';
@@ -98,6 +107,7 @@ export function CharacterForm({
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
   const [isNextChoiceOpen, setIsNextChoiceOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const supportSubject = `${form.name || '캐릭터'}${form.subject_particle}`;
 
   const showFieldWarning = (warning: string) => {
     setFieldWarning(warning);
@@ -134,9 +144,9 @@ export function CharacterForm({
       validateStudentNumber(form.student_number),
       validateCharacterName(form.name),
       validateBlankText(form.ability_blank, ABILITY_MAX_LENGTH, '능력 설명'),
-      validateBlankText(form.support1_blank, SUPPORT_MAX_LENGTH, '뒷받침문장'),
-      validateBlankText(form.support2_blank, SUPPORT_MAX_LENGTH, '뒷받침문장'),
-      validateBlankText(form.support3_blank, SUPPORT_MAX_LENGTH, '뒷받침문장'),
+      validateBlankText(form.support1_blank, SUPPORT_ACTION_MAX_LENGTH, '할 수 있는 일'),
+      validateBlankText(form.support2_blank, SUPPORT_SITUATION_MAX_LENGTH, '힘을 발휘하는 때'),
+      validateBlankText(form.support3_blank, SUPPORT_TARGET_MAX_LENGTH, '도움 대상'),
     ].filter(Boolean);
     return errors[0] || '';
   };
@@ -220,13 +230,14 @@ export function CharacterForm({
                 value={form.ability_blank}
                 onChange={(event) => setLimitedField('ability_blank', event.target.value, ABILITY_MAX_LENGTH, '능력 설명')}
               />
-              능력을 가진 캐릭터입니다.
+              <span className={sentenceFixedTextClass}>능력을 가진 캐릭터입니다.</span>
             </p>
           </article>
 
           <article className={supportSentenceCardClass}>
             <span className={supportTagClass}>뒷받침문장</span>
             <p className={supportLineClass}>
+              <span className={supportSubjectClass}>{supportSubject}</span>
               <span className={supportInputWrapClass}>
                 <span className={supportInputSizerClass} aria-hidden="true">
                   {form.support1_blank || ' '}
@@ -234,17 +245,19 @@ export function CharacterForm({
                 <input
                   aria-label="첫 번째 뒷받침 내용"
                   className={supportBlankClass}
-                  maxLength={SUPPORT_MAX_LENGTH + 1}
+                  maxLength={SUPPORT_ACTION_MAX_LENGTH + 1}
                   value={form.support1_blank}
-                  onChange={(event) => setLimitedField('support1_blank', event.target.value, SUPPORT_MAX_LENGTH, '뒷받침문장')}
+                  onChange={(event) => setLimitedField('support1_blank', event.target.value, SUPPORT_ACTION_MAX_LENGTH, '할 수 있는 일')}
                 />
               </span>
+              <span className={supportFixedTextClass}>수 있습니다.</span>
             </p>
           </article>
 
           <article className={supportSentenceCardClass}>
             <span className={supportTagClass}>뒷받침문장</span>
             <p className={supportLineClass}>
+              <span className={supportSubjectClass}>{supportSubject}</span>
               <span className={supportInputWrapClass}>
                 <span className={supportInputSizerClass} aria-hidden="true">
                   {form.support2_blank || ' '}
@@ -252,17 +265,19 @@ export function CharacterForm({
                 <input
                   aria-label="두 번째 뒷받침 내용"
                   className={supportBlankClass}
-                  maxLength={SUPPORT_MAX_LENGTH + 1}
+                  maxLength={SUPPORT_SITUATION_MAX_LENGTH + 1}
                   value={form.support2_blank}
-                  onChange={(event) => setLimitedField('support2_blank', event.target.value, SUPPORT_MAX_LENGTH, '뒷받침문장')}
+                  onChange={(event) => setLimitedField('support2_blank', event.target.value, SUPPORT_SITUATION_MAX_LENGTH, '힘을 발휘하는 때')}
                 />
               </span>
+              <span className={supportFixedTextClass}>때 힘을 발휘합니다.</span>
             </p>
           </article>
 
           <article className={supportSentenceCardClass}>
             <span className={supportTagClass}>뒷받침문장</span>
             <p className={supportLineClass}>
+              <span className={supportSubjectClass}>{form.name || '캐릭터'}는 그 능력으로</span>
               <span className={supportInputWrapClass}>
                 <span className={supportInputSizerClass} aria-hidden="true">
                   {form.support3_blank || ' '}
@@ -270,11 +285,12 @@ export function CharacterForm({
                 <input
                   aria-label="세 번째 뒷받침 내용"
                   className={supportBlankClass}
-                  maxLength={SUPPORT_MAX_LENGTH + 1}
+                  maxLength={SUPPORT_TARGET_MAX_LENGTH + 1}
                   value={form.support3_blank}
-                  onChange={(event) => setLimitedField('support3_blank', event.target.value, SUPPORT_MAX_LENGTH, '뒷받침문장')}
+                  onChange={(event) => setLimitedField('support3_blank', event.target.value, SUPPORT_TARGET_MAX_LENGTH, '도움 대상')}
                 />
               </span>
+              <span className={supportFixedTextClass}>도와줍니다.</span>
             </p>
           </article>
         </section>

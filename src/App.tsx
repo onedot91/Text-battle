@@ -7,8 +7,9 @@ import { CharacterBook } from './components/CharacterBook';
 import { BattleStart } from './components/BattleStart';
 import { BattleResult } from './components/BattleResult';
 import { TeacherDashboard } from './components/TeacherDashboard';
+import { BattleHistory } from './components/BattleHistory';
 
-type View = 'home' | 'form' | 'book' | 'battle' | 'result' | 'teacher';
+type View = 'home' | 'form' | 'book' | 'battle' | 'result' | 'history' | 'teacher';
 
 type ResultPayload = {
   characterA: Character;
@@ -27,6 +28,7 @@ const viewTitles: Record<View, string> = {
   book: '내 캐릭터',
   battle: '배틀하기',
   result: '배틀 결과',
+  history: '기록 보기',
   teacher: '교사용 관리',
 };
 
@@ -70,6 +72,7 @@ export default function App() {
         />
       )}
       {view === 'book' && <CharacterBook initialStudentNumber={studentNumber} />}
+      {view === 'history' && <BattleHistory studentNumber={studentNumber} />}
       {view === 'battle' && (
         <BattleStart
           initialStudentNumber={studentNumber}

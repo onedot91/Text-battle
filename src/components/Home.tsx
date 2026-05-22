@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { Character } from '../types';
 import { getRepresentativeCharacter } from '../services/characterService';
+import { getBattleRecordsForStudentNumber } from '../services/battleService';
+import { getUnreadIncomingBattleRecords } from '../utils/battleNotifications';
 
 type HomeProps = {
   studentNumber: number;
   onStudentNumberChange: (studentNumber: number) => void;
-  onNavigate: (view: 'form' | 'book' | 'battle') => void;
+  onNavigate: (view: 'form' | 'book' | 'battle' | 'history') => void;
 };
 
 const MIN_STUDENT_NUMBER = 1;
@@ -14,6 +16,7 @@ const MAX_STUDENT_NUMBER = 23;
 export function Home({ studentNumber, onStudentNumberChange, onNavigate }: HomeProps) {
   const [studentNumberInput, setStudentNumberInput] = useState(String(studentNumber));
   const [representative, setRepresentative] = useState<Character | null>(null);
+  const [incomingBattleCount, setIncomingBattleCount] = useState(0);
   const [isLoadingRepresentative, setIsLoadingRepresentative] = useState(false);
 
   useEffect(() => {
@@ -23,12 +26,20 @@ export function Home({ studentNumber, onStudentNumberChange, onNavigate }: HomeP
   useEffect(() => {
     let isMounted = true;
     setIsLoadingRepresentative(true);
-    getRepresentativeCharacter(studentNumber)
-      .then((character) => {
-        if (isMounted) setRepresentative(character);
+
+    Promise.all([
+      getRepresentativeCharacter(studentNumber),
+      getBattleRecordsForStudentNumber(studentNumber),
+    ])
+      .then(([character, records]) => {
+        if (!isMounted) return;
+        setRepresentative(character);
+        setIncomingBattleCount(getUnreadIncomingBattleRecords(studentNumber, records).length);
       })
       .catch(() => {
-        if (isMounted) setRepresentative(null);
+        if (!isMounted) return;
+        setRepresentative(null);
+        setIncomingBattleCount(0);
       })
       .finally(() => {
         if (isMounted) setIsLoadingRepresentative(false);
@@ -107,7 +118,7 @@ export function Home({ studentNumber, onStudentNumberChange, onNavigate }: HomeP
           </button>
         </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <button
             className="rounded-lg border-2 border-slate-200 bg-white px-5 py-4 text-xl font-black text-slate-900 transition hover:border-slate-400"
             onClick={() => onNavigate('form')}
@@ -120,7 +131,24 @@ export function Home({ studentNumber, onStudentNumberChange, onNavigate }: HomeP
           >
             캐릭터 보기
           </button>
+          <button
+            className="relative rounded-lg border-2 border-slate-200 bg-white px-5 py-4 text-xl font-black text-slate-900 transition hover:border-slate-400"
+            onClick={() => onNavigate('history')}
+          >
+            기록 보기
+            {incomingBattleCount > 0 && (
+              <span className="ml-2 rounded-full bg-rose-600 px-2.5 py-1 text-sm font-black text-white">
+                알림 {incomingBattleCount}
+              </span>
+            )}
+          </button>
         </div>
+
+        {incomingBattleCount > 0 && (
+          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-5 py-4 text-lg font-black text-rose-900">
+            누군가 {studentNumber}번 캐릭터에게 배틀을 신청했습니다. 기록 보기에서 확인하세요.
+          </div>
+        )}
 
         {!representative && !isLoadingRepresentative && (
           <div className="mt-4 rounded-lg bg-amber-50 px-5 py-4 text-lg font-black text-amber-900">
