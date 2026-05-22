@@ -7,12 +7,13 @@ type LayoutProps = {
   title?: string;
   isHome: boolean;
   onHome: () => void;
+  onTeacher: () => void;
 };
 
 type SupabaseStatus = 'checking' | 'connected' | 'disconnected';
 type GeminiStatus = 'checking' | 'configured' | 'missing';
 
-export function Layout({ children, title = '캐릭터 문단 배틀', isHome, onHome }: LayoutProps) {
+export function Layout({ children, title = '캐릭터 문단 배틀', isHome, onHome, onTeacher }: LayoutProps) {
   const [supabaseStatus, setSupabaseStatus] = useState<SupabaseStatus>('checking');
   const [geminiStatus, setGeminiStatus] = useState<GeminiStatus>('checking');
 
@@ -56,11 +57,11 @@ export function Layout({ children, title = '캐릭터 문단 배틀', isHome, on
         : 'animate-pulse bg-slate-400/40 shadow-[0_0_14px_rgba(100,116,139,0.25)]';
 
   return (
-    <div className="min-h-screen bg-sky-50">
-      <header className="border-b-4 border-sky-100 bg-white">
+    <div className="min-h-screen bg-slate-100">
+      <header className="border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="text-3xl font-black text-sky-950">{title}</div>
+            <div className="text-3xl font-black text-slate-950">{title}</div>
             <span
               aria-label="Supabase connection status"
               className={`mt-1 h-3 w-3 rounded-full opacity-70 blur-[0.2px] ${statusClass}`}
@@ -70,14 +71,24 @@ export function Layout({ children, title = '캐릭터 문단 배틀', isHome, on
               className={`mt-1 h-3 w-3 rounded-full opacity-70 blur-[0.2px] ${geminiStatusClass}`}
             />
           </div>
-          {!isHome && (
+          <div className="flex items-center gap-3">
+            {isHome && (
+              <button
+                className="rounded-md border border-slate-200 px-3 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                onClick={onTeacher}
+              >
+                교사용
+              </button>
+            )}
+            {!isHome && (
             <button
               className="rounded-lg bg-sky-700 px-6 py-4 text-xl font-black text-white hover:bg-sky-800"
               onClick={onHome}
             >
               처음으로
             </button>
-          )}
+            )}
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>

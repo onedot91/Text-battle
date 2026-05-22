@@ -1,6 +1,6 @@
 import { situations } from '../data/situations';
 import type { BattleResult, Character, Situation } from '../types';
-import { getFullParagraph, getSupportSentence1, getSupportSentence2, getSupportSentence3, getTopicSentence } from './characterText';
+import { getFullParagraph } from './characterText';
 
 export function pickRandomSituation() {
   return situations[Math.floor(Math.random() * situations.length)];
@@ -11,18 +11,6 @@ export function calculateKeywordScore(character: Character, situation: Situation
   return situation.keywords.reduce((score, keyword) => {
     return text.includes(keyword.replace(/\s+/g, '').toLowerCase()) ? score + 1 : score;
   }, 0);
-}
-
-function pickEvidenceSentence(character: Character, situation: Situation) {
-  const supports = [
-    getSupportSentence1(character),
-    getSupportSentence2(character),
-    getSupportSentence3(character),
-  ];
-  const matched = supports.find((sentence) =>
-    situation.keywords.some((keyword) => sentence.replace(/\s+/g, '').includes(keyword.replace(/\s+/g, ''))),
-  );
-  return matched || supports[0];
 }
 
 export function generateFallbackBattle(characterA: Character, characterB: Character, situation: Situation): BattleResult {
@@ -50,12 +38,6 @@ export function generateFallbackBattle(characterA: Character, characterB: Charac
     winner: winnerLabel,
     winnerCharacterId: winner.id,
     winnerName: winner.name,
-    reason: `${winner.name}의 중심문장과 뒷받침문장이 상황 카드와 더 잘 연결되어 있었기 때문입니다.`,
-    evidence: {
-      topicSentence: getTopicSentence(winner),
-      supportSentence: pickEvidenceSentence(winner, situation),
-    },
-    rewriteTip: '내 캐릭터가 어떤 상황에서 누구를 어떻게 도와주는지 더 자세히 써 보세요.',
     usedFallback: true,
   };
 }

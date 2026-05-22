@@ -30,6 +30,7 @@ export type CharacterInput = {
 
 export type Situation = {
   id: string;
+  title: string;
   text: string;
   keywords: string[];
 };
@@ -68,12 +69,6 @@ export type BattleResult = {
   winner: 'A' | 'B';
   winnerCharacterId: string;
   winnerName: string;
-  reason: string;
-  evidence: {
-    topicSentence: string;
-    supportSentence: string;
-  };
-  rewriteTip: string;
   usedFallback?: boolean;
   fallbackReason?: string;
 };

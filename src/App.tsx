@@ -19,7 +19,16 @@ type ResultPayload = {
 
 const STUDENT_NUMBER_STORAGE_KEY = 'text-battle-student-number';
 const MIN_STUDENT_NUMBER = 1;
-const MAX_STUDENT_NUMBER = 99;
+const MAX_STUDENT_NUMBER = 23;
+
+const viewTitles: Record<View, string> = {
+  home: '캐릭터 문단 배틀',
+  form: '캐릭터 등록하기',
+  book: '내 캐릭터',
+  battle: '배틀하기',
+  result: '배틀 결과',
+  teacher: '교사용 관리',
+};
 
 function getSavedStudentNumber() {
   const savedValue = window.localStorage.getItem(STUDENT_NUMBER_STORAGE_KEY);
@@ -41,9 +50,10 @@ export default function App() {
 
   return (
     <Layout
-      title={view === 'form' ? '캐릭터 등록하기' : '캐릭터 문단 배틀'}
+      title={viewTitles[view]}
       isHome={view === 'home'}
       onHome={() => setView('home')}
+      onTeacher={() => setView('teacher')}
     >
       {view === 'home' && (
         <Home
@@ -52,7 +62,13 @@ export default function App() {
           onNavigate={(nextView) => setView(nextView)}
         />
       )}
-      {view === 'form' && <CharacterForm initialStudentNumber={studentNumber} showTitle={false} />}
+      {view === 'form' && (
+        <CharacterForm
+          initialStudentNumber={studentNumber}
+          showTitle={false}
+          onChooseNext={(nextView) => setView(nextView)}
+        />
+      )}
       {view === 'book' && <CharacterBook initialStudentNumber={studentNumber} />}
       {view === 'battle' && (
         <BattleStart

@@ -1,11 +1,5 @@
 import type { Character } from '../types';
-import {
-  getFullParagraph,
-  getSupportSentence1,
-  getSupportSentence2,
-  getSupportSentence3,
-  getTopicSentence,
-} from '../utils/characterText';
+import { getFullParagraph } from '../utils/characterText';
 
 type CharacterCardProps = {
   character: Character;
@@ -23,16 +17,7 @@ export function CharacterCard({ character, onSetRepresentative, onEdit, onDelete
           <span className="rounded-full bg-yellow-200 px-4 py-2 text-base font-black text-yellow-900">★ 대표</span>
         )}
       </div>
-      <div className="space-y-3 text-lg leading-8">
-        <p><strong>중심:</strong> {getTopicSentence(character)}</p>
-        <p><strong>1:</strong> {getSupportSentence1(character)}</p>
-        <p><strong>2:</strong> {getSupportSentence2(character)}</p>
-        <p><strong>3:</strong> {getSupportSentence3(character)}</p>
-      </div>
-      <div className="mt-4 rounded-lg bg-slate-50 p-4 text-lg leading-8">
-        <strong>문단</strong>
-        <p className="mt-2">{getFullParagraph(character)}</p>
-      </div>
+      <p className="rounded-lg bg-slate-50 p-4 text-lg leading-8">{getFullParagraph(character)}</p>
       <div className="mt-5 flex flex-wrap gap-3">
         {onSetRepresentative && !character.is_representative && (
           <button className="rounded-lg bg-yellow-500 px-5 py-3 text-lg font-bold text-white hover:bg-yellow-600" onClick={() => onSetRepresentative(character)}>

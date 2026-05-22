@@ -7,6 +7,19 @@ async function getCharacterById(characterId: string) {
   return data;
 }
 
+function isMissingSubjectParticleColumn(error: unknown) {
+  if (!error || typeof error !== 'object') return false;
+  const maybeError = error as { message?: string; details?: string; hint?: string };
+  return [maybeError.message, maybeError.details, maybeError.hint].some((value) =>
+    value?.includes('subject_particle'),
+  );
+}
+
+function withoutSubjectParticle(input: Partial<CharacterInput>) {
+  const { subject_particle: _subjectParticle, ...rest } = input;
+  return rest;
+}
+
 export async function getCharactersByStudentNumber(studentNumber: number) {
   const { data, error } = await supabase
     .from('characters')
@@ -30,21 +43,37 @@ export async function getAllCharacters() {
 export async function createCharacter(input: CharacterInput) {
   const existing = await getCharactersByStudentNumber(input.student_number);
   const isRepresentative = existing.length === 0;
-  const { data, error } = await supabase
+
+  const result = await supabase
     .from('characters')
     .insert({ ...input, is_representative: isRepresentative })
     .select()
     .single();
-  if (error) throw error;
+
+  if (result.error && isMissingSubjectParticleColumn(result.error)) {
+    const fallbackResult = await supabase
+      .from('characters')
+      .insert({ ...withoutSubjectParticle(input), is_representative: isRepresentative } as never)
+      .select()
+      .single();
+    if (fallbackResult.error) throw fallbackResult.error;
+    return {
+      character: fallbackResult.data,
+      becameRepresentative: isRepresentative,
+    };
+  }
+
+  if (result.error) throw result.error;
   return {
-    character: data,
+    character: result.data,
     becameRepresentative: isRepresentative,
   };
 }
 
 export async function updateCharacter(characterId: string, updates: Partial<CharacterInput> & { is_representative?: boolean }) {
   const existing = await getCharacterById(characterId);
-  const { data, error } = await supabase
+
+  const result = await supabase
     .from('characters')
     .update({
       ...updates,
@@ -53,11 +82,30 @@ export async function updateCharacter(characterId: string, updates: Partial<Char
     .eq('id', characterId)
     .select()
     .single();
-  if (error) throw error;
+
+  if (result.error && isMissingSubjectParticleColumn(result.error)) {
+    const fallbackResult = await supabase
+      .from('characters')
+      .update({
+        ...withoutSubjectParticle(updates),
+        updated_at: new Date().toISOString(),
+      } as never)
+      .eq('id', characterId)
+      .select()
+      .single();
+    if (fallbackResult.error) throw fallbackResult.error;
+    return {
+      ...withoutSubjectParticle(updates),
+      ...existing,
+      ...fallbackResult.data,
+    };
+  }
+
+  if (result.error) throw result.error;
   return {
     ...updates,
     ...existing,
-    ...data,
+    ...result.data,
   };
 }
 
@@ -93,6 +141,17 @@ export async function getRepresentativeCharacter(studentNumber: number) {
     .order('updated_at', { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function getRandomBattleOpponentCandidates(studentNumber: number) {
+  const { data, error } = await supabase
+    .from('characters')
+    .select('*')
+    .eq('is_representative', true)
+    .neq('student_number', studentNumber)
+    .order('student_number', { ascending: true });
   if (error) throw error;
   return data;
 }

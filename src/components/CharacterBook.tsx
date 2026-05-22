@@ -53,15 +53,6 @@ export function CharacterBook({ initialStudentNumber = 1 }: CharacterBookProps) 
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-3xl font-black text-sky-950">내 캐릭터</h2>
-        <button
-          className="rounded-lg bg-sky-700 px-6 py-4 text-xl font-black text-white hover:bg-sky-800"
-          onClick={() => void loadCharacters()}
-        >
-          내 캐릭터 보기
-        </button>
-      </section>
       <ErrorMessage message={error} />
       {isLoading && <LoadingMessage message="불러오는 중" />}
       {editing && (

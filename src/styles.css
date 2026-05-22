@@ -11,6 +11,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 button,
@@ -26,4 +28,38 @@ select:focus-visible,
 textarea:focus-visible {
   outline: 3px solid #2563eb;
   outline-offset: 2px;
+}
+
+.slot-reel {
+  will-change: transform;
+}
+
+.slot-reel-spinning {
+  animation: slot-reel-spin 0.54s cubic-bezier(0.62, 0.01, 0.28, 1) infinite;
+}
+
+.slot-reel-settled {
+  transform: translateY(-88px);
+  animation: slot-reel-lock 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes slot-reel-spin {
+  0% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(-82px);
+  }
+}
+
+@keyframes slot-reel-lock {
+  0% {
+    transform: translateY(-120px);
+  }
+  70% {
+    transform: translateY(-78px);
+  }
+  100% {
+    transform: translateY(-88px);
+  }
 }

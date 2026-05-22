@@ -13,6 +13,7 @@ const TYPE_SPEED_MS = 70;
 export function BattleResult({ characterA, characterB, situation, result }: BattleResultProps) {
   const [visibleStory, setVisibleStory] = useState('');
   const [isComplete, setIsComplete] = useState(false);
+  const winnerCharacter = result.winner === 'A' ? characterA : characterB;
 
   useEffect(() => {
     const storyCharacters = Array.from(result.story);
@@ -43,9 +44,21 @@ export function BattleResult({ characterA, characterB, situation, result }: Batt
   return (
     <div className="space-y-6">
       <section className="rounded-lg bg-white p-6 shadow-sm">
-        <h2 className="text-3xl font-black text-sky-950">
-          {characterA.name} VS {characterB.name}
-        </h2>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="shrink-0 rounded-full bg-sky-100 px-4 py-2 text-lg font-black text-sky-900">
+              {characterA.student_number}번
+            </span>
+            <h2 className="truncate text-3xl font-black text-sky-950">{characterA.name}</h2>
+          </div>
+          <span className="text-2xl font-black text-slate-400">VS</span>
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="shrink-0 rounded-full bg-rose-100 px-4 py-2 text-lg font-black text-rose-900">
+              {characterB.student_number}번
+            </span>
+            <h2 className="truncate text-3xl font-black text-rose-950">{characterB.name}</h2>
+          </div>
+        </div>
         {result.usedFallback && (
           <p className="mt-3 rounded-lg bg-amber-50 p-3 text-lg font-bold text-amber-900">
             임시 결과{result.fallbackReason ? `: ${result.fallbackReason}` : ''}
@@ -57,7 +70,7 @@ export function BattleResult({ characterA, characterB, situation, result }: Batt
         <span className="w-fit rounded-full bg-sky-100 px-4 py-2 text-lg font-black text-sky-900">
           상황
         </span>
-        <p className="text-xl leading-8 text-slate-950">{situation.text}</p>
+        <p className="text-2xl font-black leading-8 text-slate-950">{situation.title}</p>
       </section>
 
       <section className="flex min-h-[500px] flex-col justify-between rounded-lg border-4 border-yellow-200 bg-yellow-50 px-7 py-8 shadow-sm sm:min-h-[560px] sm:px-12 sm:py-10">
@@ -73,9 +86,12 @@ export function BattleResult({ characterA, characterB, situation, result }: Batt
           aria-hidden={!isComplete}
         >
           <p className="text-base font-black text-yellow-950 sm:text-lg">승리 캐릭터</p>
-          <p className="mt-2 text-4xl font-black leading-tight text-yellow-900 sm:text-5xl">
-            {result.winnerName}
-          </p>
+          <div className="mt-2 flex flex-wrap items-center justify-end gap-3">
+            <span className="rounded-full bg-yellow-200 px-4 py-2 text-lg font-black text-yellow-950">
+              {winnerCharacter.student_number}번
+            </span>
+            <p className="text-4xl font-black leading-tight text-yellow-900 sm:text-5xl">{result.winnerName}</p>
+          </div>
         </div>
       </section>
     </div>

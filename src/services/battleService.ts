@@ -3,7 +3,7 @@ import type { BattleRecord, BattleRecordInput, BattleResult, Character, Situatio
 
 const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 const geminiModel = 'gemini-2.5-flash';
-const geminiTimeoutMs = 20000;
+const geminiTimeoutMs = 35000;
 const shouldUseGeminiProxy = import.meta.env.PROD;
 
 function topicSentence(character: Character) {
@@ -38,12 +38,11 @@ story에는 따옴표 대사를 되도록 쓰지 말고, 대사가 꼭 필요하
 결과는 JSON으로만 반환한다. 마크다운을 사용하지 않는다.
 승리 캐릭터는 characterA 또는 characterB 중 하나여야 한다.
 승패가 애매하면 상황과 더 직접적으로 연결되는 문장이 있는 캐릭터를 선택하되, 아주 가까운 승부처럼 표현한다.
-배틀 이야기는 7~9문장 정도로 작성한다.
+배틀 이야기는 5~6문장 정도로 작성한다.
 각 캐릭터의 특징이 이야기 속 행동으로 최소 두 번 이상 드러나게 한다.
 중간에는 두 캐릭터가 번갈아 장점을 보여 주는 장면을 넣어 여유 있게 전개한다.
 story 필드는 해설문이 아니라 이야기처럼 작성한다. 마지막 문장에는 승리 캐릭터 이름과 승리 결과가 자연스럽게 드러나야 한다.
 story 필드 금지 표현: "중심문장", "뒷받침문장", "능력으로", "능력은", "설명을 듣고", "문장처럼", 입력 문장을 따옴표로 직접 인용하는 표현.
-고쳐쓰기 조언은 비난하지 않고 부드럽게 작성한다.
 
 상황:
 ${situation.text}
@@ -65,13 +64,7 @@ name: ${characterB.name}
   "story": "배틀 이야기",
   "winner": "A 또는 B",
   "winnerCharacterId": "승리 캐릭터의 id",
-  "winnerName": "승리 캐릭터의 이름",
-  "reason": "승리 이유",
-  "evidence": {
-    "topicSentence": "근거가 된 중심문장",
-    "supportSentence": "근거가 된 뒷받침문장"
-  },
-  "rewriteTip": "고쳐쓰기 조언"
+  "winnerName": "승리 캐릭터의 이름"
 }
 `;
 }
@@ -125,7 +118,12 @@ export async function generateBattleWithGemini(characterA: Character, characterB
       signal: controller.signal,
       body: JSON.stringify(requestBody),
     },
-  ).finally(() => window.clearTimeout(timeoutId));
+  ).catch((error: unknown) => {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('AI 응답이 늦어서 기본 이야기로 만들었어요.');
+    }
+    throw error;
+  }).finally(() => window.clearTimeout(timeoutId));
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '');
@@ -158,12 +156,6 @@ export async function generateBattleWithGemini(characterA: Character, characterB
     winner,
     winnerCharacterId: textOrFallback(parsed.winnerCharacterId, winnerCharacter.id),
     winnerName: textOrFallback(parsed.winnerName, winnerCharacter.name),
-    reason: textOrFallback(parsed.reason, ''),
-    evidence: {
-      topicSentence: textOrFallback(parsed.evidence?.topicSentence, topicSentence(winnerCharacter)),
-      supportSentence: textOrFallback(parsed.evidence?.supportSentence, supportSentences(winnerCharacter)[0]),
-    },
-    rewriteTip: textOrFallback(parsed.rewriteTip, ''),
   } satisfies BattleResult;
 }
 

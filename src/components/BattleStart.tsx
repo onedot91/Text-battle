@@ -1,11 +1,18 @@
-import { FormEvent, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { BattleRecordInput, BattleResult, Character, Situation } from '../types';
 import { createBattleRecord, generateBattleWithGemini } from '../services/battleService';
-import { getRepresentativeCharacter } from '../services/characterService';
+import { getRandomBattleOpponentCandidates, getRepresentativeCharacter } from '../services/characterService';
 import { generateFallbackBattle, pickRandomSituation } from '../utils/battleEngine';
+import { situations } from '../data/situations';
 import { validateStudentNumber } from '../utils/validators';
 import { ErrorMessage } from './ErrorMessage';
-import { LoadingMessage } from './LoadingMessage';
+
+const activeBattleRequests = new Set<number>();
+const opponentRouletteDurationMs = 3200;
+const situationRouletteDurationMs = 3600;
+const rouletteTickMs = 90;
+
+type LoadingStep = 'opponent' | 'situation' | 'story';
 
 type BattleStartProps = {
   initialStudentNumber?: number;
@@ -17,41 +24,183 @@ type BattleStartProps = {
   }) => void;
 };
 
+type RoulettePanelProps = {
+  title: string;
+  value: string;
+  items: string[];
+  isSpinning: boolean;
+  tone: 'sky' | 'rose' | 'emerald';
+};
+
+const toneClasses = {
+  sky: {
+    box: 'border-sky-200 bg-sky-50',
+    label: 'text-sky-700',
+    reel: 'from-sky-50 via-white to-sky-50',
+    active: 'border-sky-400 bg-white text-sky-950 shadow-[0_0_0_4px_rgba(14,165,233,0.12)]',
+  },
+  rose: {
+    box: 'border-rose-200 bg-rose-50',
+    label: 'text-rose-700',
+    reel: 'from-rose-50 via-white to-rose-50',
+    active: 'border-rose-400 bg-white text-rose-950 shadow-[0_0_0_4px_rgba(244,63,94,0.12)]',
+  },
+  emerald: {
+    box: 'border-emerald-200 bg-emerald-50',
+    label: 'text-emerald-700',
+    reel: 'from-emerald-50 via-white to-emerald-50',
+    active: 'border-emerald-400 bg-white text-emerald-950 shadow-[0_0_0_4px_rgba(16,185,129,0.12)]',
+  },
+};
+
+function getReelItems(items: string[], value: string) {
+  const fallbackItems = items.length > 0 ? items : [value || '준비 중'];
+  const visibleItems = [...fallbackItems, ...fallbackItems, ...fallbackItems].slice(0, 12);
+  const centerValue = value || fallbackItems[0] || '준비 중';
+  const middleIndex = Math.min(4, visibleItems.length - 1);
+  visibleItems[middleIndex] = centerValue;
+  return visibleItems;
+}
+
+function RoulettePanel({ title, value, items, isSpinning, tone }: RoulettePanelProps) {
+  const classes = toneClasses[tone];
+  const reelItems = getReelItems(items, value);
+
+  return (
+    <article className={`overflow-hidden rounded-lg border-2 p-5 ${classes.box}`}>
+      <div className="flex items-center justify-between gap-3">
+        <p className={`text-lg font-black ${classes.label}`}>{title}</p>
+        {isSpinning && (
+          <span className="flex gap-1">
+            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-current opacity-40 [animation-delay:-180ms]" />
+            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-current opacity-55 [animation-delay:-90ms]" />
+            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-current opacity-70" />
+          </span>
+        )}
+      </div>
+
+      <div className="relative mt-4 h-44 overflow-hidden rounded-lg border border-white/80 bg-white">
+        <div className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-12 bg-gradient-to-b ${classes.reel}`} />
+        <div className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12 bg-gradient-to-t ${classes.reel}`} />
+        <div className="pointer-events-none absolute inset-x-4 top-1/2 z-10 h-14 -translate-y-1/2 rounded-lg border-2 border-slate-900/10" />
+        <div className={`slot-reel ${isSpinning ? 'slot-reel-spinning' : 'slot-reel-settled'}`}>
+          {reelItems.map((item, index) => (
+            <div
+              className={`mx-4 my-2 flex h-14 items-center rounded-lg border-2 px-4 text-2xl font-black ${
+                index === 4 && !isSpinning
+                  ? classes.active
+                  : 'border-slate-100 bg-slate-50 text-slate-500'
+              }`}
+              key={`${item}-${index}`}
+            >
+              <span className="truncate">{item}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartProps) {
-  const [opponentNumber, setOpponentNumber] = useState(initialStudentNumber === 1 ? '2' : '1');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState<LoadingStep>('opponent');
+  const [myCharacter, setMyCharacter] = useState<Character | null>(null);
+  const [opponentName, setOpponentName] = useState('');
+  const [situationTitle, setSituationTitle] = useState('');
+  const [opponentReelItems, setOpponentReelItems] = useState<string[]>([]);
+  const situationReelItems = situations.map((situation) => situation.title);
   const myNumber = initialStudentNumber;
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
+  const pickRandomOpponent = (candidates: Character[]) => {
+    const randomIndex = Math.floor(Math.random() * candidates.length);
+    return candidates[randomIndex];
+  };
+
+  const runOpponentRoulette = (candidates: Character[], selectedCharacter: Character) =>
+    new Promise<void>((resolve) => {
+      setLoadingStep('opponent');
+      let index = 0;
+      setOpponentReelItems(candidates.map((candidate) => candidate.name));
+      setOpponentName(candidates[0]?.name || selectedCharacter.name);
+
+      const intervalId = window.setInterval(() => {
+        const candidate = candidates[index % candidates.length];
+        setOpponentName(candidate.name);
+        index += 1;
+      }, rouletteTickMs);
+
+      window.setTimeout(() => {
+        window.clearInterval(intervalId);
+        setOpponentName(selectedCharacter.name);
+        resolve();
+      }, opponentRouletteDurationMs);
+    });
+
+  const runSituationRoulette = (selectedSituation: Situation) =>
+    new Promise<void>((resolve) => {
+      setLoadingStep('situation');
+      let index = 0;
+      setSituationTitle(situations[0]?.title || selectedSituation.title);
+
+      const intervalId = window.setInterval(() => {
+        const situation = situations[index % situations.length];
+        setSituationTitle(situation.title);
+        index += 1;
+      }, rouletteTickMs);
+
+      window.setTimeout(() => {
+        window.clearInterval(intervalId);
+        setSituationTitle(selectedSituation.title);
+        resolve();
+      }, situationRouletteDurationMs);
+    });
+
+  const startBattle = async () => {
+    if (activeBattleRequests.has(myNumber)) return;
+
     setError('');
     setNotice('');
+    setMyCharacter(null);
+    setOpponentName('');
+    setSituationTitle('');
+    setOpponentReelItems([]);
+    setLoadingStep('opponent');
 
-    const validationError = validateStudentNumber(myNumber) || validateStudentNumber(opponentNumber);
+    const validationError = validateStudentNumber(myNumber);
     if (validationError) {
       setError(validationError);
       return;
     }
-    if (myNumber === Number(opponentNumber)) {
-      setError('같은 번호와는 배틀할 수 없어요.');
-      return;
-    }
 
+    activeBattleRequests.add(myNumber);
     setIsLoading(true);
     try {
-      const [characterA, characterB] = await Promise.all([
+      const [characterA, opponentCandidates] = await Promise.all([
         getRepresentativeCharacter(myNumber),
-        getRepresentativeCharacter(Number(opponentNumber)),
+        getRandomBattleOpponentCandidates(myNumber),
       ]);
 
-      if (!characterA || !characterB) {
-        setError('대표 캐릭터를 먼저 정해 주세요.');
+      if (!characterA) {
+        setError('내 대표 캐릭터를 먼저 정해 주세요.');
         return;
       }
 
+      if (opponentCandidates.length === 0) {
+        setError('배틀할 수 있는 다른 대표 캐릭터가 아직 없어요.');
+        return;
+      }
+
+      setMyCharacter(characterA);
+      const characterB = pickRandomOpponent(opponentCandidates);
       const situation = pickRandomSituation();
+
+      await runOpponentRoulette(opponentCandidates, characterB);
+      await runSituationRoulette(situation);
+      setLoadingStep('story');
+
       let result: BattleResult;
 
       try {
@@ -61,7 +210,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
         console.error('Gemini battle generation failed.', geminiError);
         result = generateFallbackBattle(characterA, characterB, situation);
         result.fallbackReason = message;
-        setNotice(`임시 결과: ${message}`);
+        setNotice(message);
       }
 
       const record: BattleRecordInput = {
@@ -71,10 +220,10 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
         situation_id: situation.id,
         situation_text: situation.text,
         story: result.story,
-        reason: result.reason,
-        evidence_topic_sentence: result.evidence.topicSentence,
-        evidence_support_sentence: result.evidence.supportSentence,
-        rewrite_tip: result.rewriteTip,
+        reason: '',
+        evidence_topic_sentence: null,
+        evidence_support_sentence: null,
+        rewrite_tip: null,
       };
 
       void createBattleRecord(record).catch(() => setNotice('기록 저장 실패'));
@@ -82,35 +231,75 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
     } catch {
       setError('데이터를 불러오지 못했습니다.');
     } finally {
+      activeBattleRequests.delete(myNumber);
       setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    void startBattle();
+    // startBattle intentionally runs when the battle screen is entered.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myNumber]);
+
   return (
     <div className="space-y-6">
-      <form className="rounded-lg bg-white p-6 shadow-sm" onSubmit={handleSubmit}>
-        <h2 className="mb-5 text-3xl font-black text-sky-950">배틀 시작하기</h2>
-        <label className="block text-xl font-bold">
-          상대 번호
-          <input
-            className="mt-2 w-full rounded-lg border-2 border-slate-200 px-4 py-3 text-xl"
-            type="number"
-            min="1"
-            max="99"
-            value={opponentNumber}
-            onChange={(event) => setOpponentNumber(event.target.value)}
-          />
-        </label>
-        <button
-          className="mt-6 w-full rounded-lg bg-rose-600 px-6 py-5 text-2xl font-black text-white hover:bg-rose-700"
-          disabled={isLoading}
-        >
-          배틀 시작하기
-        </button>
-      </form>
-      {isLoading && <LoadingMessage message="만드는 중" />}
+      {isLoading && (
+        <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="bg-slate-950 px-6 py-5 text-white">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <p className="text-2xl font-black">
+                {loadingStep === 'opponent' && '상대 룰렛'}
+                {loadingStep === 'situation' && '상황 룰렛'}
+                {loadingStep === 'story' && '배틀 생성'}
+              </p>
+              <div className="flex gap-2">
+                <span className={`h-3 w-12 rounded-full ${loadingStep === 'opponent' ? 'bg-rose-400' : 'bg-white/25'}`} />
+                <span className={`h-3 w-12 rounded-full ${loadingStep === 'situation' ? 'bg-emerald-400' : 'bg-white/25'}`} />
+                <span className={`h-3 w-12 rounded-full ${loadingStep === 'story' ? 'bg-sky-400' : 'bg-white/25'}`} />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-5 p-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+            <RoulettePanel
+              title="내 캐릭터"
+              value={myCharacter?.name || '불러오는 중'}
+              items={myCharacter ? [myCharacter.name] : ['불러오는 중']}
+              isSpinning={false}
+              tone="sky"
+            />
+            <RoulettePanel
+              title="상대 캐릭터"
+              value={opponentName || '고르는 중'}
+              items={opponentReelItems}
+              isSpinning={loadingStep === 'opponent'}
+              tone="rose"
+            />
+          </div>
+
+          <div className="px-6 pb-6">
+            <RoulettePanel
+              title="배틀 상황"
+              value={situationTitle || '대기 중'}
+              items={situationReelItems}
+              isSpinning={loadingStep === 'situation'}
+              tone="emerald"
+            />
+          </div>
+        </section>
+      )}
       {notice && <div className="rounded-lg bg-amber-50 p-5 text-lg font-bold text-amber-900">{notice}</div>}
       <ErrorMessage message={error} />
+      {error && (
+        <button
+          className="rounded-lg bg-rose-600 px-6 py-5 text-2xl font-black text-white hover:bg-rose-700"
+          type="button"
+          onClick={() => void startBattle()}
+        >
+          다시 배틀하기
+        </button>
+      )}
     </div>
   );
 }
