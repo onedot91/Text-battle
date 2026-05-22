@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { BattleResult as BattleResultType, Character, Situation } from '../types';
+import { playTypeSound, playWinnerSound } from '../utils/soundEffects';
 
 type BattleResultProps = {
   characterA: Character;
@@ -14,7 +15,16 @@ const TYPE_SPEED_MS = 48;
 export function BattleResult({ characterA, characterB, situation, result, onHome }: BattleResultProps) {
   const [visibleStory, setVisibleStory] = useState('');
   const [isComplete, setIsComplete] = useState(false);
+  const winnerSoundStoryRef = useRef('');
   const winnerCharacter = result.winner === 'A' ? characterA : characterB;
+
+  const revealWinner = () => {
+    setIsComplete(true);
+    if (winnerSoundStoryRef.current !== result.story) {
+      winnerSoundStoryRef.current = result.story;
+      playWinnerSound();
+    }
+  };
 
   useEffect(() => {
     const storyCharacters = Array.from(result.story);
@@ -24,18 +34,19 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setVisibleStory(result.story);
-      setIsComplete(true);
+      revealWinner();
       return;
     }
 
     let index = 0;
     const timerId = window.setInterval(() => {
       index += 1;
+      playTypeSound();
       setVisibleStory(storyCharacters.slice(0, index).join(''));
 
       if (index >= storyCharacters.length) {
         window.clearInterval(timerId);
-        setIsComplete(true);
+        revealWinner();
       }
     }, TYPE_SPEED_MS);
 

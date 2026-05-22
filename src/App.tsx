@@ -10,6 +10,7 @@ import { TeacherDashboard } from './components/TeacherDashboard';
 import { BattleHistory } from './components/BattleHistory';
 import { InitialStudentNumberSelect } from './components/InitialStudentNumberSelect';
 import { resetAllClassroomData } from './services/resetService';
+import { playButtonSound, playTypeSound } from './utils/soundEffects';
 
 type View = 'home' | 'form' | 'book' | 'battle' | 'result' | 'history' | 'teacher';
 
@@ -79,6 +80,37 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const handleButtonClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const button = target.closest('button');
+      if (!button || button.disabled || button.dataset.soundEffect === 'custom') return;
+
+      playButtonSound();
+    };
+
+    window.addEventListener('click', handleButtonClick, true);
+    return () => window.removeEventListener('click', handleButtonClick, true);
+  }, []);
+
+  useEffect(() => {
+    const handleTextInputKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.key.length !== 1 && event.key !== 'Backspace' && event.key !== 'Delete') return;
+
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) return;
+      if (target.disabled || target.readOnly) return;
+
+      playTypeSound();
+    };
+
+    window.addEventListener('keydown', handleTextInputKeyDown, true);
+    return () => window.removeEventListener('keydown', handleTextInputKeyDown, true);
   }, []);
 
   const clearLocalBattleNotificationState = () => {

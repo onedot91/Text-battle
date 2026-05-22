@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { playConfirmSound, playSelectSound } from '../utils/soundEffects';
 
 type InitialStudentNumberSelectProps = {
   minStudentNumber: number;
@@ -26,6 +27,7 @@ export function InitialStudentNumberSelect({
 
   const confirmSelection = () => {
     if (selectedNumber !== null) {
+      playConfirmSound();
       onSelect(selectedNumber);
     }
   };
@@ -82,7 +84,11 @@ export function InitialStudentNumberSelect({
                   }`}
                   type="button"
                   aria-pressed={isSelected}
-                  onClick={() => setSelectedNumber(studentNumber)}
+                  data-sound-effect="custom"
+                  onClick={() => {
+                    playSelectSound();
+                    setSelectedNumber(studentNumber);
+                  }}
                 >
                   {studentNumber}
                 </button>
@@ -94,6 +100,7 @@ export function InitialStudentNumberSelect({
             className="rounded-lg bg-sky-700 px-6 py-4 text-xl font-black text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-40"
             type="button"
             disabled={selectedNumber === null}
+            data-sound-effect="custom"
             onClick={confirmSelection}
           >
             {selectedNumber === null ? '번호 선택' : `${selectedNumber}번으로 시작`}

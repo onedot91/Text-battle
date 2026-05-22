@@ -3,6 +3,7 @@ import type { Character } from '../types';
 import { getRepresentativeCharacter } from '../services/characterService';
 import { getBattleRecordsForStudentNumber, type StudentBattleRecord } from '../services/battleService';
 import { getUnreadIncomingBattleRecords } from '../utils/battleNotifications';
+import { playChargeSound, playStartSound } from '../utils/soundEffects';
 
 type HomeProps = {
   studentNumber: number;
@@ -100,11 +101,14 @@ export function Home({ studentNumber, canOpenTeacher, onNavigate, onTeacher }: H
                 isBattleReady ? 'versus-badge-ready' : ''
               }`}
               type="button"
+              data-sound-effect="custom"
               onClick={() => {
                 if (isBattleReady) {
+                  playStartSound();
                   onNavigate('battle');
                   return;
                 }
+                playChargeSound();
                 setIsBattleReady(true);
               }}
             >

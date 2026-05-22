@@ -74,17 +74,23 @@ alter table public.characters enable row level security;
 alter table public.battle_records enable row level security;
 alter table public.rewrite_logs enable row level security;
 
+drop policy if exists "Public classroom access to characters" on public.characters;
+
 create policy "Public classroom access to characters"
   on public.characters
   for all
   using (true)
   with check (true);
 
+drop policy if exists "Public classroom access to battle records" on public.battle_records;
+
 create policy "Public classroom access to battle records"
   on public.battle_records
   for all
   using (true)
   with check (true);
+
+drop policy if exists "Public classroom access to rewrite logs" on public.rewrite_logs;
 
 create policy "Public classroom access to rewrite logs"
   on public.rewrite_logs

@@ -5,6 +5,12 @@ import { getRandomBattleOpponentCandidates, getRepresentativeCharacter } from '.
 import { generateFallbackBattle, pickRandomSituation } from '../utils/battleEngine';
 import { situations } from '../data/situations';
 import { validateStudentNumber } from '../utils/validators';
+import {
+  playErrorSound,
+  playRouletteLockSound,
+  playRouletteTickSound,
+  playStoryTransitionSound,
+} from '../utils/soundEffects';
 import { ErrorMessage } from './ErrorMessage';
 
 const activeBattleRequests = new Set<number>();
@@ -51,22 +57,19 @@ type RoulettePanelProps = {
 
 const toneClasses = {
   sky: {
-    box: 'border-sky-200 bg-sky-50',
-    label: 'text-sky-700',
-    reel: 'from-sky-50 via-white to-sky-50',
-    active: 'border-sky-400 bg-white text-sky-950 shadow-[0_0_0_4px_rgba(14,165,233,0.12)]',
+    box: 'roulette-tone-sky',
+    label: 'text-sky-800',
+    active: 'is-active',
   },
   rose: {
-    box: 'border-rose-200 bg-rose-50',
-    label: 'text-rose-700',
-    reel: 'from-rose-50 via-white to-rose-50',
-    active: 'border-rose-400 bg-white text-rose-950 shadow-[0_0_0_4px_rgba(244,63,94,0.12)]',
+    box: 'roulette-tone-rose',
+    label: 'text-rose-800',
+    active: 'is-active',
   },
   emerald: {
-    box: 'border-emerald-200 bg-emerald-50',
-    label: 'text-emerald-700',
-    reel: 'from-emerald-50 via-white to-emerald-50',
-    active: 'border-emerald-400 bg-white text-emerald-950 shadow-[0_0_0_4px_rgba(16,185,129,0.12)]',
+    box: 'roulette-tone-emerald',
+    label: 'text-emerald-800',
+    active: 'is-active',
   },
 };
 
@@ -85,17 +88,17 @@ function RoulettePanel({ title, badge, value, items, isSpinning, tone }: Roulett
 
   return (
     <article className={`battle-roulette-panel overflow-hidden rounded-lg border-2 p-5 ${classes.box}`}>
-      <div className="flex items-center justify-between gap-3">
+      <div className="battle-roulette-heading flex items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <p className={`text-lg font-black ${classes.label}`}>{title}</p>
           {badge && (
-            <span className="rounded-full bg-white px-3 py-1 text-base font-black text-slate-800 shadow-sm ring-1 ring-slate-200">
+            <span className="battle-roulette-badge rounded-full bg-white px-3 py-1 text-base font-black text-slate-800 shadow-sm ring-1 ring-slate-200">
               {badge}
             </span>
           )}
         </div>
         {isSpinning && (
-          <span className="flex gap-1">
+          <span className="battle-roulette-dots flex gap-1" aria-hidden="true">
             <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-current opacity-40 [animation-delay:-180ms]" />
             <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-current opacity-55 [animation-delay:-90ms]" />
             <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-current opacity-70" />
@@ -104,8 +107,8 @@ function RoulettePanel({ title, badge, value, items, isSpinning, tone }: Roulett
       </div>
 
       <div className="battle-reel-window relative mt-4 h-44 overflow-hidden rounded-lg border border-white/80 bg-white">
-        <div className={`battle-reel-fade pointer-events-none absolute inset-x-0 top-0 z-10 h-12 bg-gradient-to-b ${classes.reel}`} />
-        <div className={`battle-reel-fade pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12 bg-gradient-to-t ${classes.reel}`} />
+        <div className="battle-reel-fade battle-reel-fade-top pointer-events-none absolute inset-x-0 top-0 z-10 h-12" />
+        <div className="battle-reel-fade battle-reel-fade-bottom pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12" />
         <div className="battle-reel-focus pointer-events-none absolute inset-x-4 top-1/2 z-10 h-14 -translate-y-1/2 rounded-lg border-2 border-slate-900/10" />
         <div className={`slot-reel ${isSpinning ? 'slot-reel-spinning' : 'slot-reel-settled'}`}>
           {reelItems.map((item, index) => (
@@ -113,7 +116,7 @@ function RoulettePanel({ title, badge, value, items, isSpinning, tone }: Roulett
               className={`battle-reel-item mx-4 my-2 flex h-14 items-center rounded-lg border-2 px-4 text-2xl font-black ${
                 index === 4 && !isSpinning
                   ? classes.active
-                  : 'border-slate-100 bg-slate-50 text-slate-500'
+                  : ''
               }`}
               key={`${item}-${index}`}
             >
@@ -140,6 +143,11 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
   const situationReelItems = situations.map((situation) => situation.title);
   const myNumber = initialStudentNumber;
 
+  const showError = (message: string) => {
+    playErrorSound();
+    setError(message);
+  };
+
   const pickRandomOpponent = (candidates: Character[]) => {
     const randomIndex = Math.floor(Math.random() * candidates.length);
     return candidates[randomIndex];
@@ -155,6 +163,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
 
       const intervalId = window.setInterval(() => {
         const candidate = candidates[index % candidates.length];
+        playRouletteTickSound();
         setOpponentName(candidate.name);
         setOpponentNumber(candidate.student_number);
         index += 1;
@@ -162,6 +171,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
 
       window.setTimeout(() => {
         window.clearInterval(intervalId);
+        playRouletteLockSound();
         setOpponentName(selectedCharacter.name);
         setOpponentNumber(selectedCharacter.student_number);
         resolve();
@@ -176,12 +186,14 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
 
       const intervalId = window.setInterval(() => {
         const situation = situations[index % situations.length];
+        playRouletteTickSound();
         setSituationTitle(situation.title);
         index += 1;
       }, rouletteTickMs);
 
       window.setTimeout(() => {
         window.clearInterval(intervalId);
+        playRouletteLockSound();
         setSituationTitle(selectedSituation.title);
         resolve();
       }, situationRouletteDurationMs);
@@ -201,7 +213,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
 
     const validationError = validateStudentNumber(myNumber);
     if (validationError) {
-      setError(validationError);
+      showError(validationError);
       return;
     }
 
@@ -214,12 +226,12 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
       ]);
 
       if (!characterA) {
-        setError('내 대표 캐릭터를 먼저 정해 주세요.');
+        showError('내 대표 캐릭터를 먼저 정해 주세요.');
         return;
       }
 
       if (opponentCandidates.length === 0) {
-        setError('배틀할 수 있는 다른 대표 캐릭터가 아직 없어요.');
+        showError('배틀할 수 있는 다른 대표 캐릭터가 아직 없어요.');
         return;
       }
 
@@ -229,6 +241,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
 
       await runOpponentRoulette(opponentCandidates, characterB);
       await runSituationRoulette(situation);
+      playStoryTransitionSound();
       setLoadingStep('story');
 
       let result: BattleResult;
@@ -259,7 +272,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
       void createBattleRecord(record).catch(() => setNotice('기록 저장 실패'));
       onResult({ characterA, characterB, situation, result });
     } catch {
-      setError('데이터를 불러오지 못했습니다.');
+      showError('데이터를 불러오지 못했습니다.');
     } finally {
       activeBattleRequests.delete(myNumber);
       setIsLoading(false);
