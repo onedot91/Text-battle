@@ -180,7 +180,7 @@ export function BattleHistory({ studentNumber, onHome }: BattleHistoryProps) {
               </div>
 
               <div className="px-5 pb-5">
-                <p className="whitespace-pre-line break-keep rounded-lg bg-white p-4 text-lg font-semibold leading-9 text-slate-800 ring-1 ring-slate-200">
+                <p className="story-copy whitespace-pre-line break-keep rounded-lg bg-white p-4 text-lg font-semibold leading-9 text-slate-800 ring-1 ring-slate-200">
                   {record.story}
                 </p>
               </div>

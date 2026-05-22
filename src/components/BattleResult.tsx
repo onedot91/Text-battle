@@ -86,7 +86,7 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
       </section>
 
       <section className="result-story-section flex min-h-[500px] flex-col justify-between rounded-lg border-4 border-yellow-200 bg-yellow-50 px-7 py-8 shadow-sm sm:min-h-[560px] sm:px-12 sm:py-10">
-        <p className="max-w-[64em] whitespace-pre-line break-keep text-xl font-semibold leading-[2.05] text-slate-950 sm:text-[1.55rem] sm:leading-[2]">
+        <p className="story-copy max-w-[64em] whitespace-pre-line break-keep text-xl font-semibold leading-[2.05] text-slate-950 sm:text-[1.55rem] sm:leading-[2]">
           {visibleStory}
           {!isComplete && <span className="ml-1 inline-block h-6 w-1 translate-y-1 animate-pulse bg-yellow-900" />}
         </p>

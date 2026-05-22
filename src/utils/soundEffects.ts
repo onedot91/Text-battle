@@ -15,7 +15,7 @@ type WindowWithWebkitAudio = Window & {
   webkitAudioContext?: typeof AudioContext;
 };
 
-const MASTER_VOLUME = 0.18;
+const MASTER_VOLUME = 0.42;
 const MIN_PLAY_GAP_MS: Record<SoundName, number> = {
   button: 55,
   type: 42,

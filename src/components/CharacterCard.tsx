@@ -32,7 +32,7 @@ export function CharacterCard({ character, battleStats, onSetRepresentative, onE
           {totalBattles > 0 ? `승 ${battleStats?.wins ?? 0} · 패 ${battleStats?.losses ?? 0}` : '전적 없음'}
         </span>
       </div>
-      <p className="rounded-lg bg-slate-50 p-4 text-lg leading-8">{getFullParagraph(character)}</p>
+      <p className="story-copy rounded-lg bg-slate-50 p-4 text-lg leading-8">{getFullParagraph(character)}</p>
       <div className="mt-5 flex flex-wrap gap-3">
         {onSetRepresentative && !character.is_representative && (
           <button

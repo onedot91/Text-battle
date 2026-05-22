@@ -58,10 +58,10 @@ const nameParticleGroupClass =
   'mx-1 my-1 inline-flex overflow-hidden rounded-lg border-2 border-slate-200 bg-slate-50 align-baseline shadow-[inset_0_-3px_0_rgba(148,163,184,0.35)] transition focus-within:border-sky-500 focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(14,165,233,0.12)]';
 
 const sentenceCardClass =
-  'rounded-lg border-2 border-slate-100 bg-white p-5 shadow-sm';
+  'story-copy rounded-lg border-2 border-slate-100 bg-white p-5 shadow-sm';
 
 const supportSentenceCardClass =
-  'ml-8 rounded-lg border-2 border-slate-100 border-l-8 border-l-emerald-100 bg-white p-5 shadow-sm';
+  'story-copy ml-8 rounded-lg border-2 border-slate-100 border-l-8 border-l-emerald-100 bg-white p-5 shadow-sm';
 
 const sentenceClass = 'mt-3 flex flex-wrap items-center gap-2 text-2xl leading-[4.2rem] tracking-normal';
 
