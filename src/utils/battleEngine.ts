@@ -6,10 +6,82 @@ export function pickRandomSituation() {
   return situations[Math.floor(Math.random() * situations.length)];
 }
 
+const directWinPhrases = [
+  '무조건이김',
+  '무조건이긴',
+  '무조건승리',
+  '항상이김',
+  '항상이긴',
+  '항상승리',
+  '절대안짐',
+  '절대지지않',
+  '이길수밖에',
+  '승리확정',
+  '필승',
+  '무패',
+  '전능',
+  '무적',
+  '최강',
+  '상대가못',
+  '상대를못',
+  '상대는못',
+  '상대방이못',
+  '상대방을못',
+  '다이김',
+  '전부이김',
+  '모두이김',
+];
+
+const overbroadPowerPhrases = [
+  '모든상황',
+  '어떤상황',
+  '언제나',
+  '항상',
+  '무조건',
+  '전부',
+  '모두',
+  '다',
+];
+
+const genericScoringWords = [
+  '빠르게',
+  '정확',
+  '집중',
+  '승부',
+  '게임',
+  '운',
+  '많이',
+  '오래',
+  '찾기',
+  '고르기',
+  '맞히기',
+  '도착',
+  '완성',
+  '성공',
+  '이기기',
+];
+
+function normalizeForScoring(value: string) {
+  return value.replace(/\s+/g, '').toLowerCase();
+}
+
+function removeAll(value: string, words: string[]) {
+  return words.reduce((text, word) => text.replaceAll(normalizeForScoring(word), ''), value);
+}
+
+function getScorableText(character: Character) {
+  const text = normalizeForScoring(getFullParagraph(character));
+  const hasOverbroadPower = overbroadPowerPhrases.some((phrase) => text.includes(normalizeForScoring(phrase)));
+  const withoutDirectWins = removeAll(text, directWinPhrases);
+
+  if (!hasOverbroadPower) return withoutDirectWins;
+  return removeAll(withoutDirectWins, genericScoringWords);
+}
+
 export function calculateKeywordScore(character: Character, situation: Situation) {
-  const text = getFullParagraph(character).replace(/\s+/g, '').toLowerCase();
+  const text = getScorableText(character);
   return situation.keywords.reduce((score, keyword) => {
-    return text.includes(keyword.replace(/\s+/g, '').toLowerCase()) ? score + 1 : score;
+    return text.includes(normalizeForScoring(keyword)) ? score + 1 : score;
   }, 0);
 }
 
