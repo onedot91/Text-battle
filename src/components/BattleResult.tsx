@@ -43,20 +43,20 @@ export function BattleResult({ characterA, characterB, situation, result }: Batt
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex min-w-0 items-center gap-3">
+      <section className="result-summary-section rounded-lg bg-white p-6 shadow-sm">
+        <div className="result-matchup flex flex-wrap items-center gap-4">
+          <div className="result-contender flex min-w-0 items-center gap-3">
             <span className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-lg font-black text-white">
               {characterA.student_number}번
             </span>
-            <h2 className="truncate text-3xl font-black text-sky-950">{characterA.name}</h2>
+            <h2 className="result-name text-3xl font-black text-sky-950">{characterA.name}</h2>
           </div>
-          <span className="text-2xl font-black text-slate-400">VS</span>
-          <div className="flex min-w-0 items-center gap-3">
+          <span className="result-vs text-2xl font-black text-slate-400">VS</span>
+          <div className="result-contender flex min-w-0 items-center gap-3">
             <span className="shrink-0 rounded-full bg-rose-600 px-4 py-2 text-lg font-black text-white">
               {characterB.student_number}번
             </span>
-            <h2 className="truncate text-3xl font-black text-rose-950">{characterB.name}</h2>
+            <h2 className="result-name text-3xl font-black text-rose-950">{characterB.name}</h2>
           </div>
         </div>
         {result.usedFallback && (

@@ -32,14 +32,13 @@ function getRecordTypeLabel(record: StudentBattleRecord) {
 }
 
 type BattleCharacterPanelProps = {
-  label: string;
   tone: 'sky' | 'rose';
   character: Character | undefined;
   fallbackId: string;
   isWinner: boolean;
 };
 
-function BattleCharacterPanel({ label, tone, character, fallbackId, isWinner }: BattleCharacterPanelProps) {
+function BattleCharacterPanel({ tone, character, fallbackId, isWinner }: BattleCharacterPanelProps) {
   const toneClass =
     tone === 'sky'
       ? 'border-sky-100 bg-sky-50 text-sky-700'
@@ -49,7 +48,6 @@ function BattleCharacterPanel({ label, tone, character, fallbackId, isWinner }: 
   return (
     <div className={`rounded-lg border p-4 ${winnerClass}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className={`text-sm font-black ${isWinner ? 'text-yellow-800' : ''}`}>{label}</p>
         {isWinner && (
           <span className="rounded-full bg-yellow-200 px-3 py-1 text-sm font-black text-yellow-950">
             🏆 승리
@@ -167,7 +165,6 @@ export function BattleHistory({ studentNumber }: BattleHistoryProps) {
 
               <div className="grid gap-4 p-5 lg:grid-cols-[1fr_auto_1fr] lg:items-stretch">
                 <BattleCharacterPanel
-                  label="A 캐릭터"
                   tone="sky"
                   character={record.characterA}
                   fallbackId={record.character_a_id}
@@ -179,7 +176,6 @@ export function BattleHistory({ studentNumber }: BattleHistoryProps) {
                 </div>
 
                 <BattleCharacterPanel
-                  label="B 캐릭터"
                   tone="rose"
                   character={record.characterB}
                   fallbackId={record.character_b_id}

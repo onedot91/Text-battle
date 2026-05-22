@@ -18,9 +18,11 @@ export function Home({ studentNumber, onStudentNumberChange, onNavigate }: HomeP
   const [representative, setRepresentative] = useState<Character | null>(null);
   const [incomingBattleCount, setIncomingBattleCount] = useState(0);
   const [isLoadingRepresentative, setIsLoadingRepresentative] = useState(false);
+  const [isBattleReady, setIsBattleReady] = useState(false);
 
   useEffect(() => {
     setStudentNumberInput(String(studentNumber));
+    setIsBattleReady(false);
   }, [studentNumber]);
 
   useEffect(() => {
@@ -67,10 +69,10 @@ export function Home({ studentNumber, onStudentNumberChange, onNavigate }: HomeP
   };
 
   return (
-    <div className="min-h-[calc(100vh-132px)]">
-      <section className="mx-auto max-w-6xl rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="grid gap-4 lg:grid-cols-[12rem_minmax(0,1fr)_12rem] lg:items-stretch">
-          <div className="rounded-lg border-2 border-slate-200 bg-slate-50 p-5">
+    <div className="home-shell">
+      <section className="home-board mx-auto max-w-6xl rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="home-command-grid grid gap-4 lg:grid-cols-[12rem_minmax(0,1fr)_12rem] lg:items-stretch">
+          <div className="home-number-card rounded-lg border-2 border-slate-200 bg-slate-50 p-5">
             <label className="block text-base font-black text-slate-500" htmlFor="student-number-input">
               번호
             </label>
@@ -92,33 +94,39 @@ export function Home({ studentNumber, onStudentNumberChange, onNavigate }: HomeP
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-stretch">
-            <div className="rounded-lg border-2 border-sky-100 bg-sky-50 p-6">
+          <div className="versus-matchup grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-stretch">
+            <div className="matchup-card matchup-card-left rounded-lg border-2 border-sky-100 bg-sky-50 p-6">
               <p className="text-base font-black text-sky-700">내 캐릭터</p>
-              <p className="mt-5 truncate text-5xl font-black text-slate-950">
+              <p className="matchup-name mt-5 text-5xl font-black text-slate-950">
                 {isLoadingRepresentative ? '확인 중' : representative?.name || '없음'}
               </p>
             </div>
 
-            <div className="flex items-center justify-center rounded-lg bg-slate-950 px-5 py-4 text-3xl font-black text-white">
-              VS
-            </div>
+            <button
+              className={`versus-badge flex items-center justify-center rounded-lg bg-slate-950 px-5 py-4 text-3xl font-black text-white ${
+                isBattleReady ? 'versus-badge-ready' : ''
+              }`}
+              type="button"
+              onClick={() => {
+                if (isBattleReady) {
+                  onNavigate('battle');
+                  return;
+                }
+                setIsBattleReady(true);
+              }}
+            >
+              {isBattleReady ? '배틀 시작' : 'VS'}
+            </button>
 
-            <div className="rounded-lg border-2 border-rose-100 bg-rose-50 p-6">
+            <div className="matchup-card matchup-card-right rounded-lg border-2 border-rose-100 bg-rose-50 p-6">
               <p className="text-base font-black text-rose-700">상대</p>
-              <p className="mt-5 text-5xl font-black text-slate-950">랜덤</p>
+              <p className="matchup-name mt-5 text-5xl font-black text-slate-950">???</p>
             </div>
           </div>
 
-          <button
-            className="rounded-lg bg-rose-600 px-5 py-6 text-3xl font-black text-white transition hover:bg-rose-700"
-            onClick={() => onNavigate('battle')}
-          >
-            배틀 시작
-          </button>
         </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="home-nav-grid mt-4 grid gap-3 sm:grid-cols-3">
           <button
             className="rounded-lg border-2 border-slate-200 bg-white px-5 py-4 text-xl font-black text-slate-900 transition hover:border-slate-400"
             onClick={() => onNavigate('form')}

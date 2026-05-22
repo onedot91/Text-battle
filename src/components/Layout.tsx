@@ -91,7 +91,7 @@ export function Layout({ children, title = '캐릭터 문단 배틀', isHome, on
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
+      <main className={`mx-auto max-w-7xl px-6 py-8 ${isHome ? 'home-main' : ''}`}>{children}</main>
     </div>
   );
 }
