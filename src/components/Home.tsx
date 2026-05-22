@@ -48,6 +48,13 @@ export function Home({ studentNumber, onNavigate }: HomeProps) {
 
   return (
     <div className="home-shell">
+      <div className="home-intro mx-auto mb-5 max-w-6xl overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <img
+          className="block h-[clamp(200px,39svh,390px)] w-full object-contain object-center"
+          src="/intro.png"
+          alt="캐릭터 문단 배틀 소개 일러스트"
+        />
+      </div>
       <section className="home-board mx-auto max-w-6xl rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="home-command-grid grid gap-4 lg:grid-cols-[12rem_minmax(0,1fr)_12rem] lg:items-stretch">
           <div className="home-number-card rounded-lg border-2 border-slate-200 bg-slate-50 p-5">

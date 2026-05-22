@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { BattleResult as BattleResultType, Character, Situation } from './types';
 import { Layout } from './components/Layout';
 import { Home } from './components/Home';
@@ -24,10 +24,9 @@ const STUDENT_NUMBER_STORAGE_KEY = 'text-battle-student-number';
 const MIN_STUDENT_NUMBER = 1;
 const MAX_STUDENT_NUMBER = 23;
 const HIDDEN_TEACHER_STUDENT_NUMBER = 0;
-const STUDENT_NUMBER_RESET_CLICK_COUNT = 10;
 
 const viewTitles: Record<View, string> = {
-  home: '캐릭터 문단 배틀',
+  home: '',
   form: '캐릭터 등록하기',
   book: '내 캐릭터',
   battle: '배틀하기',
@@ -52,7 +51,6 @@ export default function App() {
   const [view, setView] = useState<View>('home');
   const [resultPayload, setResultPayload] = useState<ResultPayload | null>(null);
   const [studentNumber, setStudentNumberState] = useState(getSavedStudentNumber);
-  const [resetClickCount, setResetClickCount] = useState(0);
   const [teacherRefreshKey, setTeacherRefreshKey] = useState(0);
   const [isTeacherLoading, setIsTeacherLoading] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -68,9 +66,20 @@ export default function App() {
     window.localStorage.removeItem(STUDENT_NUMBER_STORAGE_KEY);
     setStudentNumberState(null);
     setResultPayload(null);
-    setResetClickCount(0);
     setView('home');
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.altKey && event.key === 'Enter') {
+        event.preventDefault();
+        resetStudentNumber();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const clearLocalBattleNotificationState = () => {
     Object.keys(window.localStorage).forEach((key) => {
@@ -96,44 +105,9 @@ export default function App() {
     }
   };
 
-  const handleHiddenResetClick = () => {
-    const nextCount = resetClickCount + 1;
-    if (nextCount >= STUDENT_NUMBER_RESET_CLICK_COUNT) {
-      resetStudentNumber();
-      return;
-    }
-
-    setResetClickCount(nextCount);
-  };
-
-  const title =
-    view === 'home' ? (
-      <>
-        캐릭터{' '}
-        <span
-          className="cursor-default select-none"
-          role="button"
-          tabIndex={0}
-          aria-label="번호 재설정 숨김 버튼"
-          onClick={handleHiddenResetClick}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              handleHiddenResetClick();
-            }
-          }}
-        >
-          문
-        </span>
-        단 배틀
-      </>
-    ) : (
-      viewTitles[view]
-    );
-
   return (
     <Layout
-      title={title}
+      title={viewTitles[view]}
       headerAction={
         view === 'teacher' ? (
           <>

@@ -46,7 +46,7 @@ export function InitialStudentNumberSelect({
   return (
     <div className="home-shell">
       <section className="mx-auto max-w-5xl rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6">
           <div>
             <h1 className="text-4xl font-black text-slate-950">
               <span
@@ -98,7 +98,7 @@ export function InitialStudentNumberSelect({
           >
             {selectedNumber === null ? '번호 선택' : `${selectedNumber}번으로 시작`}
           </button>
-        </div>
+          </div>
       </section>
     </div>
   );

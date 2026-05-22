@@ -198,29 +198,35 @@ textarea:focus-visible {
     min-height: calc(100svh - 93px);
     display: grid;
     align-items: center;
-    padding-top: clamp(20px, 4vh, 48px) !important;
-    padding-bottom: clamp(20px, 4vh, 48px) !important;
+    padding-top: clamp(10px, 2vh, 24px) !important;
+    padding-bottom: clamp(10px, 2vh, 24px) !important;
   }
 
   .home-shell {
     width: 100%;
+    display: grid;
+    gap: clamp(12px, 1.8vh, 18px);
+  }
+
+  .home-intro {
+    margin-bottom: 0 !important;
   }
 
   .home-board {
     width: 100%;
-    padding: clamp(22px, 3vw, 40px) !important;
+    padding: clamp(14px, 1.6vw, 20px) !important;
   }
 
   .home-command-grid {
     grid-template-columns: minmax(170px, 0.75fr) minmax(0, 4.25fr) !important;
-    gap: clamp(18px, 2vw, 28px) !important;
+    gap: clamp(14px, 1.5vw, 20px) !important;
   }
 
   .home-number-card {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-height: 150px;
+    min-height: 112px;
   }
 
   .home-command-grid > button {
@@ -231,10 +237,10 @@ textarea:focus-visible {
   }
 
   .home-board .matchup-card {
-    min-height: 150px;
+    min-height: 112px;
     justify-content: center;
-    gap: 14px;
-    padding: clamp(22px, 2.4vw, 30px) !important;
+    gap: 10px;
+    padding: clamp(16px, 1.5vw, 20px) !important;
   }
 
   .matchup-name {
@@ -248,7 +254,7 @@ textarea:focus-visible {
   }
 
   .home-nav-grid {
-    margin-top: clamp(18px, 2.4vw, 30px) !important;
+    margin-top: clamp(12px, 1.6vw, 18px) !important;
   }
 
   section,

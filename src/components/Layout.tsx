@@ -17,7 +17,7 @@ type GeminiStatus = 'checking' | 'configured' | 'missing';
 
 export function Layout({
   children,
-  title = '캐릭터 문단 배틀',
+  title,
   headerAction,
   isHome,
   showTeacherButton,
@@ -71,15 +71,19 @@ export function Layout({
       <header className="border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="text-3xl font-black text-slate-950">{title}</div>
-            <span
-              aria-label="Supabase connection status"
-              className={`mt-1 h-3 w-3 rounded-full opacity-70 blur-[0.2px] ${statusClass}`}
-            />
-            <span
-              aria-label="Gemini API key status"
-              className={`mt-1 h-3 w-3 rounded-full opacity-70 blur-[0.2px] ${geminiStatusClass}`}
-            />
+            {title && (
+              <>
+                <div className="text-3xl font-black text-slate-950">{title}</div>
+                <span
+                  aria-label="Supabase connection status"
+                  className={`mt-1 h-3 w-3 rounded-full opacity-70 blur-[0.2px] ${statusClass}`}
+                />
+                <span
+                  aria-label="Gemini API key status"
+                  className={`mt-1 h-3 w-3 rounded-full opacity-70 blur-[0.2px] ${geminiStatusClass}`}
+                />
+              </>
+            )}
           </div>
           <div className="flex items-center gap-3">
             {headerAction}
