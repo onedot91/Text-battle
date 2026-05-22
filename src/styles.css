@@ -605,6 +605,17 @@ textarea:focus-visible {
     height: var(--reel-item-h) !important;
   }
 
+  .battle-reel-single {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-items: center;
+  }
+
+  .battle-reel-single .battle-reel-item {
+    margin-inline: clamp(28px, 3vw, 46px) !important;
+  }
+
   .battle-reel-focus {
     left: clamp(22px, 2vw, 34px) !important;
     right: clamp(22px, 2vw, 34px) !important;
@@ -833,12 +844,6 @@ textarea:focus-visible {
     color: #ffffff !important;
     padding: 9px 14px;
     line-height: 1 !important;
-  }
-
-  .winner-number {
-    background: #ffffff !important;
-    border: 1px solid #000000;
-    color: #000000 !important;
   }
 
   .winner-name {

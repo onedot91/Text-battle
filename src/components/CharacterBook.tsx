@@ -7,6 +7,7 @@ import {
   setRepresentativeCharacter,
 } from '../services/characterService';
 import { getBattleRecordsForStudentNumber, type StudentBattleRecord } from '../services/battleService';
+import { getCurrentWinStreakForCharacter } from '../utils/battleStreaks';
 import { CharacterCard, type CharacterBattleStats } from './CharacterCard';
 import { CharacterForm } from './CharacterForm';
 import { ErrorMessage } from './ErrorMessage';
@@ -23,7 +24,7 @@ function buildBattleStatsByCharacterId(records: StudentBattleRecord[]) {
   const stats = new Map<string, CharacterBattleStats>();
 
   const ensureStats = (characterId: string) => {
-    const current = stats.get(characterId) || { wins: 0, losses: 0 };
+    const current = stats.get(characterId) || { wins: 0, losses: 0, currentWinStreak: 0 };
     stats.set(characterId, current);
     return current;
   };
@@ -39,6 +40,10 @@ function buildBattleStatsByCharacterId(records: StudentBattleRecord[]) {
         current.losses += 1;
       }
     });
+  });
+
+  stats.forEach((current, characterId) => {
+    current.currentWinStreak = getCurrentWinStreakForCharacter(characterId, records);
   });
 
   return stats;

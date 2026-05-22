@@ -6,6 +6,8 @@ import {
   MAX_CHARACTERS_PER_STUDENT,
   setRepresentativeCharacter,
 } from '../services/characterService';
+import { getAllBattleRecords, type TeacherBattleRecord } from '../services/battleService';
+import { situations } from '../data/situations';
 import { getFullParagraph } from '../utils/characterText';
 import { ErrorMessage } from './ErrorMessage';
 import { LoadingMessage } from './LoadingMessage';
@@ -22,8 +24,23 @@ type TeacherDashboardProps = {
   onLoadingChange: (isLoading: boolean) => void;
 };
 
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat('ko-KR', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
+
+function characterLabel(character: Character | undefined, fallbackId: string) {
+  if (!character) return `삭제된 캐릭터 (${fallbackId.slice(0, 8)})`;
+  return `${character.student_number}번 ${character.name}`;
+}
+
 export function TeacherDashboard({ refreshKey, onLoadingChange }: TeacherDashboardProps) {
   const [characters, setCharacters] = useState<Character[]>([]);
+  const [battleRecords, setBattleRecords] = useState<TeacherBattleRecord[]>([]);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedStudentNumber, setSelectedStudentNumber] = useState<number | null>(null);
@@ -33,8 +50,9 @@ export function TeacherDashboard({ refreshKey, onLoadingChange }: TeacherDashboa
     setIsLoading(true);
     onLoadingChange(true);
     try {
-      const allCharacters = await getAllCharacters();
+      const [allCharacters, allBattleRecords] = await Promise.all([getAllCharacters(), getAllBattleRecords()]);
       setCharacters(allCharacters);
+      setBattleRecords(allBattleRecords);
     } catch {
       setError('데이터를 불러오지 못했습니다.');
     } finally {
@@ -74,6 +92,11 @@ export function TeacherDashboard({ refreshKey, onLoadingChange }: TeacherDashboa
         ? []
         : characters.filter((character) => character.student_number === selectedStudentNumber),
     [characters, selectedStudentNumber],
+  );
+
+  const situationTitleById = useMemo(
+    () => new Map(situations.map((situation) => [situation.id, situation.title])),
+    [],
   );
 
   const handleDelete = async (character: Character) => {
@@ -205,6 +228,92 @@ export function TeacherDashboard({ refreshKey, onLoadingChange }: TeacherDashboa
                 ))}
               </div>
             )}
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-black text-slate-950">배틀 결과 아카이브</h2>
+            <p className="mt-1 text-sm font-bold text-slate-500">저장된 모든 배틀 결과를 최신순으로 봅니다.</p>
+          </div>
+          <p className="text-sm font-black text-slate-500">총 {battleRecords.length}개</p>
+        </div>
+
+        {battleRecords.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center font-bold text-slate-500">
+            아직 저장된 배틀 결과가 없습니다.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {battleRecords.map((record) => {
+              const situationTitle = situationTitleById.get(record.situation_id) || '배틀 상황';
+              const isAWinner = record.winner_character_id === record.character_a_id;
+              const isBWinner = record.winner_character_id === record.character_b_id;
+
+              return (
+                <article key={record.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                  <div className="flex flex-col gap-2 border-b border-slate-100 bg-slate-50 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-white px-3 py-1 text-sm font-black text-slate-600 ring-1 ring-slate-200">
+                        {formatDate(record.created_at)}
+                      </span>
+                      <span className="rounded-full bg-slate-950 px-3 py-1 text-sm font-black text-white">
+                        {situationTitle}
+                      </span>
+                    </div>
+                    <p className="text-sm font-black text-slate-500">기록 ID {record.id.slice(0, 8)}</p>
+                  </div>
+
+                  <div className="grid gap-3 p-5 lg:grid-cols-[1fr_auto_1fr] lg:items-stretch">
+                    <div
+                      className={`rounded-lg border p-4 ${
+                        isAWinner ? 'border-emerald-200 bg-emerald-50' : 'border-sky-100 bg-sky-50'
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        {isAWinner && (
+                          <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-black text-emerald-800">
+                            승리
+                          </span>
+                        )}
+                        <strong className="text-xl text-slate-950">
+                          {characterLabel(record.characterA, record.character_a_id)}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-center rounded-lg bg-slate-950 px-5 py-3 text-xl font-black text-white">
+                      VS
+                    </div>
+
+                    <div
+                      className={`rounded-lg border p-4 ${
+                        isBWinner ? 'border-emerald-200 bg-emerald-50' : 'border-rose-100 bg-rose-50'
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        {isBWinner && (
+                          <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-black text-emerald-800">
+                            승리
+                          </span>
+                        )}
+                        <strong className="text-xl text-slate-950">
+                          {characterLabel(record.characterB, record.character_b_id)}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="px-5 pb-5">
+                    <p className="story-copy whitespace-pre-line break-keep rounded-lg bg-white p-4 text-lg font-semibold leading-8 text-slate-800 ring-1 ring-slate-200">
+                      {record.story}
+                    </p>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </section>

@@ -52,6 +52,7 @@ type RoulettePanelProps = {
   value: string;
   items: string[];
   isSpinning: boolean;
+  singleChoice?: boolean;
   tone: 'sky' | 'rose' | 'emerald';
 };
 
@@ -75,14 +76,13 @@ const toneClasses = {
 
 function getReelItems(items: string[], value: string) {
   const fallbackItems = items.length > 0 ? items : [value || '준비 중'];
-  const visibleItems = [...fallbackItems, ...fallbackItems, ...fallbackItems].slice(0, 12);
+  const visibleItems = Array.from({ length: 12 }, (_, index) => fallbackItems[index % fallbackItems.length]);
   const centerValue = value || fallbackItems[0] || '준비 중';
-  const middleIndex = Math.min(4, visibleItems.length - 1);
-  visibleItems[middleIndex] = centerValue;
+  visibleItems[4] = centerValue;
   return visibleItems;
 }
 
-function RoulettePanel({ title, badge, value, items, isSpinning, tone }: RoulettePanelProps) {
+function RoulettePanel({ title, badge, value, items, isSpinning, singleChoice = false, tone }: RoulettePanelProps) {
   const classes = toneClasses[tone];
   const reelItems = getReelItems(items, value);
 
@@ -107,23 +107,33 @@ function RoulettePanel({ title, badge, value, items, isSpinning, tone }: Roulett
       </div>
 
       <div className="battle-reel-window relative mt-4 h-44 overflow-hidden rounded-lg border border-white/80 bg-white">
-        <div className="battle-reel-fade battle-reel-fade-top pointer-events-none absolute inset-x-0 top-0 z-10 h-12" />
-        <div className="battle-reel-fade battle-reel-fade-bottom pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12" />
-        <div className="battle-reel-focus pointer-events-none absolute inset-x-4 top-1/2 z-10 h-14 -translate-y-1/2 rounded-lg border-2 border-slate-900/10" />
-        <div className={`slot-reel ${isSpinning ? 'slot-reel-spinning' : 'slot-reel-settled'}`}>
-          {reelItems.map((item, index) => (
-            <div
-              className={`battle-reel-item mx-4 my-2 flex h-14 items-center rounded-lg border-2 px-4 text-2xl font-black ${
-                index === 4 && !isSpinning
-                  ? classes.active
-                  : ''
-              }`}
-              key={`${item}-${index}`}
-            >
-              <span className="truncate">{item}</span>
+        {singleChoice ? (
+          <div className="battle-reel-single">
+            <div className={`battle-reel-item ${classes.active}`}>
+              <span className="truncate">{value}</span>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <>
+            <div className="battle-reel-fade battle-reel-fade-top pointer-events-none absolute inset-x-0 top-0 z-10 h-12" />
+            <div className="battle-reel-fade battle-reel-fade-bottom pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12" />
+            <div className="battle-reel-focus pointer-events-none absolute inset-x-4 top-1/2 z-10 h-14 -translate-y-1/2 rounded-lg border-2 border-slate-900/10" />
+            <div className={`slot-reel ${isSpinning ? 'slot-reel-spinning' : 'slot-reel-settled'}`}>
+              {reelItems.map((item, index) => (
+                <div
+                  className={`battle-reel-item mx-4 my-2 flex h-14 items-center rounded-lg border-2 px-4 text-2xl font-black ${
+                    index === 4 && !isSpinning
+                      ? classes.active
+                      : ''
+                  }`}
+                  key={`${item}-${index}`}
+                >
+                  <span className="truncate">{item}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </article>
   );
@@ -324,6 +334,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
               value={myCharacter?.name || '불러오는 중'}
               items={myCharacter ? [myCharacter.name] : ['불러오는 중']}
               isSpinning={false}
+              singleChoice
               tone="sky"
             />
             <RoulettePanel

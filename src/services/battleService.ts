@@ -195,6 +195,42 @@ export async function getRecentBattleRecords(limit = 10) {
   return data satisfies BattleRecord[];
 }
 
+export type TeacherBattleRecord = BattleRecord & {
+  characterA?: Character;
+  characterB?: Character;
+  winnerCharacter?: Character;
+};
+
+export async function getAllBattleRecords() {
+  const { data: records, error } = await supabase
+    .from('battle_records')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  if (!records || records.length === 0) return [] satisfies TeacherBattleRecord[];
+
+  const involvedCharacterIds = Array.from(
+    new Set(records.flatMap((record) => [record.character_a_id, record.character_b_id, record.winner_character_id])),
+  );
+
+  const { data: involvedCharacters, error: characterError } = await supabase
+    .from('characters')
+    .select('*')
+    .in('id', involvedCharacterIds);
+
+  if (characterError) throw characterError;
+
+  const characterMap = new Map((involvedCharacters || []).map((character) => [character.id, character]));
+
+  return records.map((record) => ({
+    ...record,
+    characterA: characterMap.get(record.character_a_id),
+    characterB: characterMap.get(record.character_b_id),
+    winnerCharacter: characterMap.get(record.winner_character_id),
+  })) satisfies TeacherBattleRecord[];
+}
+
 export type StudentBattleRecord = BattleRecord & {
   characterA?: Character;
   characterB?: Character;

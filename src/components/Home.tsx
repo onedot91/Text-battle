@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Character } from '../types';
 import { getRepresentativeCharacter } from '../services/characterService';
 import { getBattleRecordsForStudentNumber, type StudentBattleRecord } from '../services/battleService';
+import { getBestCurrentWinStreak, type CharacterWinStreak } from '../utils/battleStreaks';
 import { getUnreadIncomingBattleRecords } from '../utils/battleNotifications';
 import { playChargeSound, playStartSound } from '../utils/soundEffects';
 
@@ -16,6 +17,7 @@ export function Home({ studentNumber, canOpenTeacher, onNavigate, onTeacher }: H
   const [representative, setRepresentative] = useState<Character | null>(null);
   const [incomingBattleCount, setIncomingBattleCount] = useState(0);
   const [incomingTargetName, setIncomingTargetName] = useState('');
+  const [bestWinStreak, setBestWinStreak] = useState<CharacterWinStreak | null>(null);
   const [isLoadingRepresentative, setIsLoadingRepresentative] = useState(false);
   const [isBattleReady, setIsBattleReady] = useState(false);
 
@@ -44,15 +46,30 @@ export function Home({ studentNumber, canOpenTeacher, onNavigate, onTeacher }: H
       .then(([character, records]) => {
         if (!isMounted) return;
         const unreadIncomingRecords = getUnreadIncomingBattleRecords(studentNumber, records);
+        const myCharactersById = new Map<string, Character>();
+
+        records.forEach((record) => {
+          [record.characterA, record.characterB].forEach((recordCharacter) => {
+            if (recordCharacter?.student_number === studentNumber) {
+              myCharactersById.set(recordCharacter.id, recordCharacter);
+            }
+          });
+        });
+        if (character) {
+          myCharactersById.set(character.id, character);
+        }
+
         setRepresentative(character);
         setIncomingBattleCount(unreadIncomingRecords.length);
         setIncomingTargetName(getIncomingTargetName(unreadIncomingRecords, character));
+        setBestWinStreak(getBestCurrentWinStreak(Array.from(myCharactersById.values()), records));
       })
       .catch(() => {
         if (!isMounted) return;
         setRepresentative(null);
         setIncomingBattleCount(0);
         setIncomingTargetName('');
+        setBestWinStreak(null);
       })
       .finally(() => {
         if (isMounted) setIsLoadingRepresentative(false);
@@ -170,6 +187,21 @@ export function Home({ studentNumber, canOpenTeacher, onNavigate, onTeacher }: H
             </span>
             <span className="min-w-0 text-lg font-black text-slate-950">
               {incomingBattleCount}명이 {incomingTargetName}에게 도전했어요!
+            </span>
+          </button>
+        )}
+
+        {bestWinStreak && (
+          <button
+            className="mt-4 flex w-full items-center gap-3 rounded-lg border-2 border-amber-400 bg-amber-50 px-5 py-4 text-left transition hover:bg-amber-100"
+            type="button"
+            onClick={() => onNavigate('book')}
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-300 text-base font-black text-amber-950">
+              {bestWinStreak.wins}
+            </span>
+            <span className="min-w-0 text-lg font-black text-slate-950">
+              {bestWinStreak.characterName}이 {bestWinStreak.wins}연승 중이에요!
             </span>
           </button>
         )}

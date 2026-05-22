@@ -16,7 +16,6 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
   const [visibleStory, setVisibleStory] = useState('');
   const [isComplete, setIsComplete] = useState(false);
   const winnerSoundStoryRef = useRef('');
-  const winnerCharacter = result.winner === 'A' ? characterA : characterB;
 
   const revealWinner = () => {
     setIsComplete(true);
@@ -99,9 +98,6 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
         >
           <div className="winner-reveal-header">
             <p className="winner-reveal-label text-base font-black text-yellow-950 sm:text-lg">승리 캐릭터</p>
-            <span className="winner-number rounded-full bg-yellow-200 px-4 py-2 text-lg font-black text-yellow-950">
-              {winnerCharacter.student_number}번
-            </span>
           </div>
           <p className="winner-name text-4xl font-black leading-tight text-yellow-900 sm:text-5xl">{result.winnerName}</p>
         </div>

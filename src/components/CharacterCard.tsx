@@ -4,6 +4,7 @@ import { getFullParagraph } from '../utils/characterText';
 export type CharacterBattleStats = {
   wins: number;
   losses: number;
+  currentWinStreak: number;
 };
 
 type CharacterCardProps = {
@@ -31,6 +32,11 @@ export function CharacterCard({ character, battleStats, onSetRepresentative, onE
         <span className="rounded-full bg-slate-100 px-4 py-2 text-base font-black text-slate-700">
           {totalBattles > 0 ? `승 ${battleStats?.wins ?? 0} · 패 ${battleStats?.losses ?? 0}` : '전적 없음'}
         </span>
+        {(battleStats?.currentWinStreak ?? 0) >= 2 && (
+          <span className="rounded-full bg-amber-300 px-4 py-2 text-base font-black text-amber-950">
+            {battleStats?.currentWinStreak}연승 중
+          </span>
+        )}
       </div>
       <p className="story-copy rounded-lg bg-slate-50 p-4 text-lg leading-8">{getFullParagraph(character)}</p>
       <div className="mt-5 flex flex-wrap gap-3">
