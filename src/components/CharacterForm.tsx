@@ -8,6 +8,7 @@ type CharacterFormProps = {
   initialStudentNumber?: number;
   editingCharacter?: Character | null;
   showTitle?: boolean;
+  onHome?: () => void;
   onChooseNext?: (nextView: 'book' | 'battle') => void;
   onSaved?: () => void;
 };
@@ -85,6 +86,7 @@ export function CharacterForm({
   initialStudentNumber = 1,
   editingCharacter,
   showTitle = true,
+  onHome,
   onChooseNext,
   onSaved,
 }: CharacterFormProps) {
@@ -187,7 +189,25 @@ export function CharacterForm({
   };
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-6xl space-y-6">
+      {onHome && (
+        <header className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <div>
+            <p className="text-sm font-black text-slate-500">{initialStudentNumber}번</p>
+            <h1 className="text-3xl font-black text-slate-950">
+              {editingCharacter ? '캐릭터 수정하기' : '캐릭터 등록하기'}
+            </h1>
+          </div>
+          <button
+            className="rounded-lg bg-slate-950 px-5 py-3 text-lg font-black text-white transition hover:bg-slate-800"
+            type="button"
+            onClick={onHome}
+          >
+            홈으로 가기
+          </button>
+        </header>
+      )}
+
       <form className="rounded-lg bg-white p-6 shadow-sm" onSubmit={handleSubmit}>
         {showTitle && (
           <h2 className="mb-6 text-3xl font-black text-sky-950">

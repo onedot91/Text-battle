@@ -1,19 +1,32 @@
 import { useEffect, useState } from 'react';
 import type { Character } from '../types';
 import { getRepresentativeCharacter } from '../services/characterService';
-import { getBattleRecordsForStudentNumber } from '../services/battleService';
+import { getBattleRecordsForStudentNumber, type StudentBattleRecord } from '../services/battleService';
 import { getUnreadIncomingBattleRecords } from '../utils/battleNotifications';
 
 type HomeProps = {
   studentNumber: number;
+  canOpenTeacher: boolean;
   onNavigate: (view: 'form' | 'book' | 'battle' | 'history') => void;
+  onTeacher: () => void;
 };
 
-export function Home({ studentNumber, onNavigate }: HomeProps) {
+export function Home({ studentNumber, canOpenTeacher, onNavigate, onTeacher }: HomeProps) {
   const [representative, setRepresentative] = useState<Character | null>(null);
   const [incomingBattleCount, setIncomingBattleCount] = useState(0);
+  const [incomingTargetName, setIncomingTargetName] = useState('');
   const [isLoadingRepresentative, setIsLoadingRepresentative] = useState(false);
   const [isBattleReady, setIsBattleReady] = useState(false);
+
+  const getIncomingTargetName = (records: StudentBattleRecord[], fallbackCharacter: Character | null) => {
+    const targetNames = Array.from(
+      new Set(records.map((record) => record.characterB?.name).filter((name): name is string => Boolean(name))),
+    );
+
+    if (targetNames.length === 1) return targetNames[0];
+    if (targetNames.length > 1) return '내 캐릭터들';
+    return fallbackCharacter?.name || '내 캐릭터';
+  };
 
   useEffect(() => {
     setIsBattleReady(false);
@@ -29,13 +42,16 @@ export function Home({ studentNumber, onNavigate }: HomeProps) {
     ])
       .then(([character, records]) => {
         if (!isMounted) return;
+        const unreadIncomingRecords = getUnreadIncomingBattleRecords(studentNumber, records);
         setRepresentative(character);
-        setIncomingBattleCount(getUnreadIncomingBattleRecords(studentNumber, records).length);
+        setIncomingBattleCount(unreadIncomingRecords.length);
+        setIncomingTargetName(getIncomingTargetName(unreadIncomingRecords, character));
       })
       .catch(() => {
         if (!isMounted) return;
         setRepresentative(null);
         setIncomingBattleCount(0);
+        setIncomingTargetName('');
       })
       .finally(() => {
         if (isMounted) setIsLoadingRepresentative(false);
@@ -50,7 +66,7 @@ export function Home({ studentNumber, onNavigate }: HomeProps) {
     <div className="home-shell">
       <div className="home-intro mx-auto mb-5 max-w-6xl overflow-hidden rounded-lg border border-slate-200 bg-white">
         <img
-          className="block h-[clamp(200px,39svh,390px)] w-full object-contain object-center"
+          className="block h-[clamp(240px,48svh,470px)] w-full object-contain object-center"
           src="/intro.png"
           alt="캐릭터 문단 배틀 소개 일러스트"
         />
@@ -123,23 +139,33 @@ export function Home({ studentNumber, onNavigate }: HomeProps) {
             기록 보기
             {incomingBattleCount > 0 && (
               <span className="ml-2 rounded-full bg-rose-600 px-2.5 py-1 text-sm font-black text-white">
-                새 알림 {incomingBattleCount}
+                🔔 새 알림 {incomingBattleCount}
               </span>
             )}
           </button>
         </div>
 
+        {canOpenTeacher && (
+          <button
+            className="mt-3 w-full rounded-lg border-2 border-slate-200 bg-white px-5 py-3 text-base font-black text-slate-900 transition hover:border-slate-400"
+            type="button"
+            onClick={onTeacher}
+          >
+            교사용 관리
+          </button>
+        )}
+
         {incomingBattleCount > 0 && (
           <button
-            className="mt-4 flex w-full flex-col gap-1 rounded-lg border border-rose-200 bg-rose-50 px-5 py-4 text-left transition hover:border-rose-300 hover:bg-rose-100"
+            className="home-alert-button mt-4 flex w-full items-center gap-3 rounded-lg border-2 border-black bg-amber-300 px-5 py-4 text-left transition hover:bg-amber-200"
             type="button"
             onClick={() => onNavigate('history')}
           >
-            <span className="text-lg font-black text-rose-900">
-              새 배틀 신청 {incomingBattleCount}개
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-2xl">
+              ⚔️
             </span>
-            <span className="text-base font-bold text-rose-800">
-              누군가 {studentNumber}번 캐릭터에게 배틀을 신청했습니다.
+            <span className="min-w-0 text-lg font-black text-slate-950">
+              {incomingBattleCount}명이 {incomingTargetName}에게 도전했어요!
             </span>
           </button>
         )}

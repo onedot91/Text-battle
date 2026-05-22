@@ -11,6 +11,7 @@ import {
 
 type BattleHistoryProps = {
   studentNumber: number;
+  onHome: () => void;
 };
 
 function formatDate(value: string) {
@@ -59,7 +60,7 @@ function BattleCharacterPanel({ tone, character, fallbackId, isWinner }: BattleC
   );
 }
 
-export function BattleHistory({ studentNumber }: BattleHistoryProps) {
+export function BattleHistory({ studentNumber, onHome }: BattleHistoryProps) {
   const [records, setRecords] = useState<StudentBattleRecord[]>([]);
   const [unreadIncomingRecordIds, setUnreadIncomingRecordIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
@@ -97,6 +98,20 @@ export function BattleHistory({ studentNumber }: BattleHistoryProps) {
 
   return (
     <div className="space-y-5">
+      <header className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-5 py-4 shadow-sm">
+        <div>
+          <p className="text-sm font-black text-slate-500">{studentNumber}번</p>
+          <h1 className="text-3xl font-black text-slate-950">배틀 기록</h1>
+        </div>
+        <button
+          className="rounded-lg bg-slate-950 px-5 py-3 text-lg font-black text-white transition hover:bg-slate-800"
+          type="button"
+          onClick={onHome}
+        >
+          홈으로 가기
+        </button>
+      </header>
+
       {isLoading && <LoadingMessage message="기록을 불러오는 중입니다." />}
       <ErrorMessage message={error} />
 

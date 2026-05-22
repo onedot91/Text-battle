@@ -6,11 +6,12 @@ type BattleResultProps = {
   characterB: Character;
   situation: Situation;
   result: BattleResultType;
+  onHome: () => void;
 };
 
 const TYPE_SPEED_MS = 48;
 
-export function BattleResult({ characterA, characterB, situation, result }: BattleResultProps) {
+export function BattleResult({ characterA, characterB, situation, result, onHome }: BattleResultProps) {
   const [visibleStory, setVisibleStory] = useState('');
   const [isComplete, setIsComplete] = useState(false);
   const winnerCharacter = result.winner === 'A' ? characterA : characterB;
@@ -45,28 +46,18 @@ export function BattleResult({ characterA, characterB, situation, result }: Batt
     <div className="space-y-6">
       <section className="result-summary-section rounded-lg bg-white p-6 shadow-sm">
         <div className="result-matchup flex flex-wrap items-center gap-4">
-          <div
-            className={`result-contender flex min-w-0 items-center gap-3 ${
-              result.winner === 'A' ? 'result-contender-winner' : ''
-            }`}
-          >
-            <span className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-lg font-black text-white">
+          <div className="result-contender flex min-w-0 items-center gap-3">
+            <span className="shrink-0 rounded-full border border-black/20 bg-sky-50 px-4 py-2 text-lg font-black text-sky-950">
               {characterA.student_number}번
             </span>
             <h2 className="result-name text-3xl font-black text-sky-950">{characterA.name}</h2>
-            {result.winner === 'A' && <span className="result-win-chip">승리</span>}
           </div>
           <span className="result-vs text-2xl font-black text-slate-400">VS</span>
-          <div
-            className={`result-contender flex min-w-0 items-center gap-3 ${
-              result.winner === 'B' ? 'result-contender-winner' : ''
-            }`}
-          >
-            <span className="shrink-0 rounded-full bg-rose-600 px-4 py-2 text-lg font-black text-white">
+          <div className="result-contender flex min-w-0 items-center gap-3">
+            <span className="shrink-0 rounded-full border border-black/20 bg-rose-50 px-4 py-2 text-lg font-black text-rose-950">
               {characterB.student_number}번
             </span>
             <h2 className="result-name text-3xl font-black text-rose-950">{characterB.name}</h2>
-            {result.winner === 'B' && <span className="result-win-chip">승리</span>}
           </div>
         </div>
         {result.usedFallback && (
@@ -77,7 +68,7 @@ export function BattleResult({ characterA, characterB, situation, result }: Batt
       </section>
 
       <section className="flex flex-col gap-4 rounded-lg border-2 border-emerald-100 bg-white p-6 sm:flex-row sm:items-center">
-        <span className="w-fit rounded-full bg-emerald-600 px-4 py-2 text-lg font-black text-white">
+        <span className="w-fit rounded-full border border-black/20 bg-emerald-50 px-4 py-2 text-lg font-black text-emerald-950">
           상황
         </span>
         <p className="text-2xl font-black leading-8 text-slate-950">{situation.title}</p>
@@ -104,6 +95,16 @@ export function BattleResult({ characterA, characterB, situation, result }: Batt
           <p className="winner-name text-4xl font-black leading-tight text-yellow-900 sm:text-5xl">{result.winnerName}</p>
         </div>
       </section>
+
+      <div className="flex justify-end">
+        <button
+          className="rounded-lg bg-slate-950 px-7 py-4 text-xl font-black text-white transition hover:bg-slate-800"
+          type="button"
+          onClick={onHome}
+        >
+          홈으로 가기
+        </button>
+      </div>
     </div>
   );
 }

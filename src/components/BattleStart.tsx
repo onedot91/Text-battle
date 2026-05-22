@@ -16,6 +16,16 @@ const storyLoadingMessages = [
   '아슬아슬한 장면을 넣는 중',
   '승부가 갈리는 순간을 만드는 중',
   '마지막 문장을 다듬는 중',
+  '두 캐릭터를 경기장에 세우는 중',
+  '멋진 첫 장면을 준비하는 중',
+  '긴장되는 대결 흐름을 짜는 중',
+  '이기는 이유를 살펴보는 중',
+  '반짝이는 표현을 찾는 중',
+  '응원 소리를 더하는 중',
+  '결정적인 장면을 고르는 중',
+  '이야기를 재미있게 섞는 중',
+  '승리 장면을 확인하는 중',
+  '마무리 표현을 고르는 중',
 ];
 
 type LoadingStep = 'opponent' | 'situation' | 'story';
@@ -74,7 +84,7 @@ function RoulettePanel({ title, badge, value, items, isSpinning, tone }: Roulett
   const reelItems = getReelItems(items, value);
 
   return (
-    <article className={`overflow-hidden rounded-lg border-2 p-5 ${classes.box}`}>
+    <article className={`battle-roulette-panel overflow-hidden rounded-lg border-2 p-5 ${classes.box}`}>
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <p className={`text-lg font-black ${classes.label}`}>{title}</p>
@@ -93,14 +103,14 @@ function RoulettePanel({ title, badge, value, items, isSpinning, tone }: Roulett
         )}
       </div>
 
-      <div className="relative mt-4 h-44 overflow-hidden rounded-lg border border-white/80 bg-white">
-        <div className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-12 bg-gradient-to-b ${classes.reel}`} />
-        <div className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12 bg-gradient-to-t ${classes.reel}`} />
-        <div className="pointer-events-none absolute inset-x-4 top-1/2 z-10 h-14 -translate-y-1/2 rounded-lg border-2 border-slate-900/10" />
+      <div className="battle-reel-window relative mt-4 h-44 overflow-hidden rounded-lg border border-white/80 bg-white">
+        <div className={`battle-reel-fade pointer-events-none absolute inset-x-0 top-0 z-10 h-12 bg-gradient-to-b ${classes.reel}`} />
+        <div className={`battle-reel-fade pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12 bg-gradient-to-t ${classes.reel}`} />
+        <div className="battle-reel-focus pointer-events-none absolute inset-x-4 top-1/2 z-10 h-14 -translate-y-1/2 rounded-lg border-2 border-slate-900/10" />
         <div className={`slot-reel ${isSpinning ? 'slot-reel-spinning' : 'slot-reel-settled'}`}>
           {reelItems.map((item, index) => (
             <div
-              className={`mx-4 my-2 flex h-14 items-center rounded-lg border-2 px-4 text-2xl font-black ${
+              className={`battle-reel-item mx-4 my-2 flex h-14 items-center rounded-lg border-2 px-4 text-2xl font-black ${
                 index === 4 && !isSpinning
                   ? classes.active
                   : 'border-slate-100 bg-slate-50 text-slate-500'
@@ -276,10 +286,10 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
   }, [loadingStep]);
 
   return (
-    <div className="space-y-6">
+    <div className="battle-start-screen space-y-6">
       {isLoading && (
-        <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-          <div className="bg-slate-950 px-6 py-5 text-white">
+        <section className="battle-loading-card overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="battle-loading-header bg-slate-950 px-6 py-5 text-white">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <p className="text-2xl font-black">
                 {loadingStep === 'opponent' && '상대 룰렛'}
@@ -294,7 +304,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
             </div>
           </div>
 
-          <div className="grid gap-5 p-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+          <div className="battle-roulette-grid grid gap-5 p-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
             <RoulettePanel
               title="내 캐릭터"
               badge={myCharacter ? `${myCharacter.student_number}번` : undefined}
@@ -313,7 +323,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
             />
           </div>
 
-          <div className="px-6 pb-6">
+          <div className="battle-situation-row px-6 pb-6">
             <RoulettePanel
               title="배틀 상황"
               value={situationTitle || '대기 중'}
@@ -324,7 +334,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
           </div>
 
           {loadingStep === 'story' && (
-            <div className="px-6 pb-6">
+            <div className="battle-story-row px-6 pb-6">
               <div className="story-loader overflow-hidden rounded-lg border-2 border-sky-200 bg-sky-50 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>

@@ -14,6 +14,7 @@ import { LoadingMessage } from './LoadingMessage';
 
 type CharacterBookProps = {
   initialStudentNumber?: number;
+  onHome: () => void;
 };
 
 const CHARACTER_SLOTS = Array.from({ length: MAX_CHARACTERS_PER_STUDENT }, (_, index) => index);
@@ -43,7 +44,7 @@ function buildBattleStatsByCharacterId(records: StudentBattleRecord[]) {
   return stats;
 }
 
-export function CharacterBook({ initialStudentNumber = 1 }: CharacterBookProps) {
+export function CharacterBook({ initialStudentNumber = 1, onHome }: CharacterBookProps) {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [battleRecords, setBattleRecords] = useState<StudentBattleRecord[]>([]);
   const [editing, setEditing] = useState<Character | null>(null);
@@ -102,6 +103,20 @@ export function CharacterBook({ initialStudentNumber = 1 }: CharacterBookProps) 
 
   return (
     <div className="space-y-6">
+      <header className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-5 py-4 shadow-sm">
+        <div>
+          <p className="text-sm font-black text-slate-500">{initialStudentNumber}번</p>
+          <h1 className="text-3xl font-black text-slate-950">내 캐릭터</h1>
+        </div>
+        <button
+          className="rounded-lg bg-slate-950 px-5 py-3 text-lg font-black text-white transition hover:bg-slate-800"
+          type="button"
+          onClick={onHome}
+        >
+          홈으로 가기
+        </button>
+      </header>
+
       <ErrorMessage message={error} />
       {isLoading && <LoadingMessage message="불러오는 중" />}
       {editing && (

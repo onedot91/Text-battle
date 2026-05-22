@@ -45,7 +45,7 @@ export function InitialStudentNumberSelect({
 
   return (
     <div className="home-shell">
-      <section className="mx-auto max-w-5xl rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <section className="initial-number-panel mx-auto max-w-6xl rounded-lg border border-slate-200 bg-white p-8 shadow-sm sm:p-10">
           <div className="flex flex-col gap-6">
           <div>
             <h1 className="text-4xl font-black text-slate-950">
@@ -68,16 +68,16 @@ export function InitialStudentNumberSelect({
             </h1>
           </div>
 
-          <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 md:grid-cols-8">
+          <div className="grid grid-cols-4 gap-4 sm:grid-cols-6 md:grid-cols-8">
             {selectableNumbers.map((studentNumber) => {
               const isSelected = selectedNumber === studentNumber;
 
               return (
                 <button
                   key={studentNumber}
-                  className={`min-h-16 rounded-lg border-2 px-3 py-4 text-2xl font-black transition ${
+                  className={`initial-number-button min-h-20 rounded-lg border-2 px-3 py-5 text-3xl font-black transition ${
                     isSelected
-                      ? 'border-slate-950 bg-slate-950 text-white'
+                      ? 'initial-number-button-selected border-slate-950 bg-slate-950 text-white'
                       : 'border-slate-200 bg-white text-slate-950 hover:border-slate-400'
                   }`}
                   type="button"

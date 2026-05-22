@@ -107,34 +107,7 @@ export default function App() {
 
   return (
     <Layout
-      title={viewTitles[view]}
-      headerAction={
-        view === 'teacher' ? (
-          <>
-            <button
-              className="rounded-lg bg-red-700 px-6 py-4 text-xl font-black text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-              disabled={isTeacherLoading || isResettingClassroom}
-              onClick={() => {
-                setResetError('');
-                setIsResetModalOpen(true);
-              }}
-            >
-              전면 초기화
-            </button>
-            <button
-              className="rounded-lg bg-sky-700 px-6 py-4 text-xl font-black text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-              disabled={isTeacherLoading || isResettingClassroom}
-              onClick={() => setTeacherRefreshKey((current) => current + 1)}
-            >
-              {isTeacherLoading ? '불러오는 중' : '새로고침'}
-            </button>
-          </>
-        ) : undefined
-      }
       isHome={view === 'home'}
-      showTeacherButton={studentNumber === HIDDEN_TEACHER_STUDENT_NUMBER}
-      onHome={() => setView('home')}
-      onTeacher={() => setView('teacher')}
     >
       {studentNumber === null && view === 'home' && (
         <InitialStudentNumberSelect
@@ -147,18 +120,25 @@ export default function App() {
       {studentNumber !== null && view === 'home' && (
         <Home
           studentNumber={studentNumber}
+          canOpenTeacher={studentNumber === HIDDEN_TEACHER_STUDENT_NUMBER}
           onNavigate={(nextView) => setView(nextView)}
+          onTeacher={() => setView('teacher')}
         />
       )}
       {studentNumber !== null && view === 'form' && (
         <CharacterForm
           initialStudentNumber={studentNumber}
           showTitle={false}
+          onHome={() => setView('home')}
           onChooseNext={(nextView) => setView(nextView)}
         />
       )}
-      {studentNumber !== null && view === 'book' && <CharacterBook initialStudentNumber={studentNumber} />}
-      {studentNumber !== null && view === 'history' && <BattleHistory studentNumber={studentNumber} />}
+      {studentNumber !== null && view === 'book' && (
+        <CharacterBook initialStudentNumber={studentNumber} onHome={() => setView('home')} />
+      )}
+      {studentNumber !== null && view === 'history' && (
+        <BattleHistory studentNumber={studentNumber} onHome={() => setView('home')} />
+      )}
       {studentNumber !== null && view === 'battle' && (
         <BattleStart
           initialStudentNumber={studentNumber}
@@ -168,12 +148,47 @@ export default function App() {
           }}
         />
       )}
-      {view === 'result' && resultPayload && <BattleResult {...resultPayload} />}
-      {view === 'teacher' && (
-        <TeacherDashboard
-          refreshKey={teacherRefreshKey}
-          onLoadingChange={setIsTeacherLoading}
+      {view === 'result' && resultPayload && (
+        <BattleResult
+          {...resultPayload}
+          onHome={() => setView('home')}
         />
+      )}
+      {view === 'teacher' && (
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-4xl font-black text-slate-950">{viewTitles.teacher}</h1>
+            <div className="flex flex-wrap gap-3">
+              <button
+                className="rounded-lg bg-red-700 px-6 py-4 text-xl font-black text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                disabled={isTeacherLoading || isResettingClassroom}
+                onClick={() => {
+                  setResetError('');
+                  setIsResetModalOpen(true);
+                }}
+              >
+                전면 초기화
+              </button>
+              <button
+                className="rounded-lg bg-sky-700 px-6 py-4 text-xl font-black text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                disabled={isTeacherLoading || isResettingClassroom}
+                onClick={() => setTeacherRefreshKey((current) => current + 1)}
+              >
+                {isTeacherLoading ? '불러오는 중' : '새로고침'}
+              </button>
+              <button
+                className="rounded-lg bg-sky-700 px-6 py-4 text-xl font-black text-white hover:bg-sky-800"
+                onClick={() => setView('home')}
+              >
+                처음으로
+              </button>
+            </div>
+          </div>
+          <TeacherDashboard
+            refreshKey={teacherRefreshKey}
+            onLoadingChange={setIsTeacherLoading}
+          />
+        </div>
       )}
       {isResetModalOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/45 px-6">
