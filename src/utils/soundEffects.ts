@@ -139,14 +139,14 @@ function playSound(name: SoundName, makeSound: (context: AudioContext, now: numb
 
 export function playSelectSound() {
   playSound('select', (context, now) => {
-    playTone(context, now, 520, 0.055, 0.22, 'triangle', 760);
+    playTone(context, now, 520, 0.055, 0.25, 'triangle', 760);
   });
 }
 
 export function playButtonSound() {
   playSound('button', (context, now) => {
-    playTone(context, now, 420, 0.04, 0.11, 'triangle', 520);
-    playTone(context, now + 0.025, 620, 0.045, 0.075, 'sine', 560);
+    playTone(context, now, 420, 0.04, 0.13, 'triangle', 520);
+    playTone(context, now + 0.025, 620, 0.045, 0.086, 'sine', 560);
   });
 }
 
@@ -159,58 +159,58 @@ export function playTypeSound() {
 
 export function playConfirmSound() {
   playSound('confirm', (context, now) => {
-    playTone(context, now, 620, 0.055, 0.2, 'triangle', 880);
-    playTone(context, now + 0.045, 880, 0.07, 0.18, 'sine', 1180);
+    playTone(context, now, 620, 0.055, 0.23, 'triangle', 880);
+    playTone(context, now + 0.045, 880, 0.07, 0.21, 'sine', 1180);
   });
 }
 
 export function playChargeSound() {
   playSound('charge', (context, now) => {
-    playTone(context, now, 240, 0.16, 0.2, 'sawtooth', 540);
-    playTone(context, now + 0.08, 360, 0.18, 0.12, 'triangle', 900);
+    playTone(context, now, 240, 0.16, 0.23, 'sawtooth', 540);
+    playTone(context, now + 0.08, 360, 0.18, 0.14, 'triangle', 900);
   });
 }
 
 export function playStartSound() {
   playSound('start', (context, now) => {
-    playTone(context, now, 220, 0.08, 0.2, 'square', 220);
-    playTone(context, now + 0.055, 440, 0.11, 0.18, 'triangle', 660);
-    playTone(context, now + 0.145, 880, 0.13, 0.16, 'sine', 1320);
+    playTone(context, now, 220, 0.08, 0.23, 'square', 220);
+    playTone(context, now + 0.055, 440, 0.11, 0.21, 'triangle', 660);
+    playTone(context, now + 0.145, 880, 0.13, 0.18, 'sine', 1320);
   });
 }
 
 export function playRouletteTickSound() {
   playSound('rouletteTick', (context, now) => {
-    playNoise(context, now, 0.028, 0.08);
-    playTone(context, now, 760, 0.032, 0.065, 'triangle', 620);
+    playNoise(context, now, 0.028, 0.092);
+    playTone(context, now, 760, 0.032, 0.075, 'triangle', 620);
   });
 }
 
 export function playRouletteLockSound() {
   playSound('rouletteLock', (context, now) => {
-    playTone(context, now, 360, 0.075, 0.18, 'triangle', 360);
-    playTone(context, now + 0.065, 720, 0.11, 0.15, 'sine', 540);
+    playTone(context, now, 360, 0.075, 0.21, 'triangle', 360);
+    playTone(context, now + 0.065, 720, 0.11, 0.17, 'sine', 540);
   });
 }
 
 export function playStoryTransitionSound() {
   playSound('storyTransition', (context, now) => {
-    playTone(context, now, 330, 0.18, 0.12, 'sine', 660);
-    playTone(context, now + 0.12, 495, 0.2, 0.1, 'triangle', 990);
+    playTone(context, now, 330, 0.18, 0.14, 'sine', 660);
+    playTone(context, now + 0.12, 495, 0.2, 0.12, 'triangle', 990);
   });
 }
 
 export function playWinnerSound() {
   playSound('winner', (context, now) => {
-    playTone(context, now, 523.25, 0.12, 0.18, 'triangle');
-    playTone(context, now + 0.1, 659.25, 0.12, 0.16, 'triangle');
-    playTone(context, now + 0.2, 783.99, 0.2, 0.16, 'sine');
+    playTone(context, now, 523.25, 0.12, 0.21, 'triangle');
+    playTone(context, now + 0.1, 659.25, 0.12, 0.18, 'triangle');
+    playTone(context, now + 0.2, 783.99, 0.2, 0.18, 'sine');
   });
 }
 
 export function playErrorSound() {
   playSound('error', (context, now) => {
-    playTone(context, now, 220, 0.12, 0.16, 'sawtooth', 170);
-    playTone(context, now + 0.09, 165, 0.16, 0.13, 'triangle', 120);
+    playTone(context, now, 220, 0.12, 0.18, 'sawtooth', 170);
+    playTone(context, now + 0.09, 165, 0.16, 0.15, 'triangle', 120);
   });
 }

@@ -201,8 +201,8 @@ textarea:focus-visible {
   }
 
   main:has(.battle-start-screen) {
-    padding-top: clamp(14px, 2vh, 24px) !important;
-    padding-bottom: clamp(14px, 2vh, 24px) !important;
+    padding-top: clamp(8px, 1.2vh, 14px) !important;
+    padding-bottom: clamp(8px, 1.2vh, 14px) !important;
   }
 
   main.home-main {
@@ -452,7 +452,7 @@ textarea:focus-visible {
   }
 
   .battle-start-screen {
-    min-height: calc(100svh - clamp(28px, 4vh, 48px));
+    min-height: calc(100svh - clamp(16px, 2.4vh, 28px));
     display: grid;
     align-items: center;
   }
@@ -471,49 +471,54 @@ textarea:focus-visible {
 
   .battle-loading-header {
     background: #1f1d3d !important;
-    padding: clamp(18px, 2vw, 24px) clamp(24px, 3vw, 48px) !important;
+    padding: clamp(12px, 1.45vw, 18px) clamp(22px, 3vw, 40px) !important;
   }
 
   .battle-loading-header p {
-    font-size: clamp(2rem, 3vw, 3.25rem) !important;
+    font-size: clamp(1.75rem, 2.55vw, 2.75rem) !important;
     font-weight: 340 !important;
     line-height: 1.05 !important;
   }
 
+  .battle-loading-header span {
+    height: 10px !important;
+    width: clamp(34px, 4vw, 48px) !important;
+  }
+
   .battle-roulette-grid {
-    gap: clamp(16px, 2vw, 24px) !important;
-    padding: clamp(24px, 3vw, 48px) clamp(24px, 3vw, 48px) clamp(16px, 2vw, 24px) !important;
+    gap: clamp(12px, 1.45vw, 18px) !important;
+    padding: clamp(16px, 2vw, 26px) clamp(20px, 2.7vw, 38px) clamp(12px, 1.5vw, 18px) !important;
   }
 
   .battle-situation-row,
   .battle-story-row {
-    padding-inline: clamp(24px, 3vw, 48px) !important;
-    padding-bottom: clamp(24px, 3vw, 48px) !important;
+    padding-inline: clamp(20px, 2.7vw, 38px) !important;
+    padding-bottom: clamp(12px, 1.7vw, 22px) !important;
   }
 
   .battle-roulette-panel {
     --roulette-note: #dceeb1;
-    --reel-window-h: 158px;
-    --reel-item-h: 52px;
-    --reel-item-gap: 10px;
-    --reel-step: 62px;
-    --reel-step-negative: -62px;
-    --roulette-settle-y: -189px;
+    --reel-window-h: clamp(108px, 12vh, 126px);
+    --reel-item-h: clamp(38px, 4.5vh, 44px);
+    --reel-item-gap: 8px;
+    --reel-step: 52px;
+    --reel-step-negative: -52px;
+    --roulette-settle-y: -159px;
     position: relative;
     isolation: isolate;
     border: 1px solid #000000 !important;
     background: #ffffff !important;
-    padding: clamp(20px, 2vw, 24px) !important;
+    padding: clamp(14px, 1.45vw, 18px) !important;
     box-shadow: none !important;
   }
 
   .battle-roulette-panel::before {
     content: "";
     position: absolute;
-    left: 24px;
+    left: 22px;
     top: 0;
-    width: 96px;
-    height: 10px;
+    width: 82px;
+    height: 8px;
     z-index: 1;
     background: var(--roulette-note);
     border: 1px solid #000000;
@@ -536,13 +541,14 @@ textarea:focus-visible {
 
   .battle-roulette-heading {
     color: #000000;
-    min-height: 42px;
+    min-height: 32px;
   }
 
   .battle-roulette-badge {
     border: 1px solid #000000 !important;
     background: #ffffff !important;
     color: #000000 !important;
+    padding: 4px 12px !important;
     box-shadow: none !important;
   }
 
@@ -551,14 +557,14 @@ textarea:focus-visible {
   }
 
   .battle-roulette-panel p {
-    font-size: clamp(1.45rem, 1.7vw, 2rem) !important;
+    font-size: clamp(1.22rem, 1.45vw, 1.7rem) !important;
     font-weight: 700 !important;
     line-height: 1.1 !important;
   }
 
   .battle-reel-window {
     height: var(--reel-window-h) !important;
-    margin-top: clamp(14px, 1.4vw, 18px) !important;
+    margin-top: clamp(8px, 1vw, 12px) !important;
     border: 1px solid #000000 !important;
     background: #f7f7f5 !important;
     border-radius: 8px !important;
@@ -574,22 +580,22 @@ textarea:focus-visible {
     width: 0;
     height: 0;
     transform: translateY(-50%);
-    border-top: 9px solid transparent;
-    border-bottom: 9px solid transparent;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
   }
 
   .battle-reel-window::before {
-    left: 12px;
-    border-left: 11px solid #000000;
+    left: 10px;
+    border-left: 10px solid #000000;
   }
 
   .battle-reel-window::after {
-    right: 12px;
-    border-right: 11px solid #000000;
+    right: 10px;
+    border-right: 10px solid #000000;
   }
 
   .battle-reel-fade {
-    height: clamp(34px, 4.4vh, 48px) !important;
+    height: clamp(28px, 3.8vh, 38px) !important;
   }
 
   .battle-reel-fade-top {
@@ -613,12 +619,12 @@ textarea:focus-visible {
   }
 
   .battle-reel-single .battle-reel-item {
-    margin-inline: clamp(28px, 3vw, 46px) !important;
+    margin-inline: clamp(26px, 3vw, 42px) !important;
   }
 
   .battle-reel-focus {
-    left: clamp(22px, 2vw, 34px) !important;
-    right: clamp(22px, 2vw, 34px) !important;
+    left: clamp(20px, 2vw, 30px) !important;
+    right: clamp(20px, 2vw, 30px) !important;
     z-index: 4 !important;
     border: 2px solid #000000 !important;
     background: #ffffff;
@@ -630,11 +636,11 @@ textarea:focus-visible {
     display: flex;
     align-items: center;
     margin: 0 clamp(16px, 1.5vw, 24px) !important;
-    padding-inline: clamp(18px, 1.6vw, 26px) !important;
+    padding-inline: clamp(16px, 1.45vw, 22px) !important;
     border-color: transparent !important;
     background: transparent !important;
     color: #000000 !important;
-    font-size: clamp(1.45rem, 1.9vw, 2.18rem) !important;
+    font-size: clamp(1.28rem, 1.65vw, 1.9rem) !important;
     font-weight: 340 !important;
     line-height: 1.05 !important;
     opacity: 0.42;
@@ -658,16 +664,21 @@ textarea:focus-visible {
   }
 
   .battle-story-row .story-loader {
-    padding: clamp(16px, 1.7vw, 22px) !important;
+    padding: clamp(12px, 1.4vw, 18px) !important;
   }
 
   .battle-story-row .story-loader p:first-child {
-    font-size: clamp(1.1rem, 1.25vw, 1.45rem) !important;
+    font-size: clamp(1rem, 1.1vw, 1.25rem) !important;
   }
 
   .battle-story-row .story-loader p + p {
-    font-size: clamp(1.65rem, 2.2vw, 2.65rem) !important;
+    margin-top: 4px !important;
+    font-size: clamp(1.45rem, 1.9vw, 2.25rem) !important;
     line-height: 1.12 !important;
+  }
+
+  .battle-story-row .story-loader .mt-5 {
+    margin-top: 12px !important;
   }
 
   .versus-matchup {
