@@ -15,9 +15,9 @@ type CharacterFormProps = {
 type EditableCharacterField = Exclude<keyof CharacterInput, 'student_number'>;
 const CHARACTER_NAME_MAX_LENGTH = 7;
 const ABILITY_MAX_LENGTH = 20;
-const SUPPORT_ACTION_MAX_LENGTH = 18;
-const SUPPORT_SITUATION_MAX_LENGTH = 18;
-const SUPPORT_TARGET_MAX_LENGTH = 14;
+const SUPPORT_ACTION_MAX_LENGTH = 30;
+const SUPPORT_SITUATION_MAX_LENGTH = 30;
+const SUPPORT_TARGET_MAX_LENGTH = 25;
 
 const emptyForm: CharacterInput = {
   student_number: 1,
@@ -35,12 +35,12 @@ const blankClass =
 const supportBlankClass =
   'col-start-1 row-start-1 min-h-14 w-full min-w-0 rounded-lg border-2 border-slate-200 bg-slate-50 px-4 py-2 align-baseline text-2xl font-bold text-sky-950 shadow-[inset_0_-3px_0_rgba(148,163,184,0.35)] transition focus:border-sky-500 focus:bg-white focus:shadow-[0_0_0_4px_rgba(14,165,233,0.12)]';
 
-const supportLineClass = 'mt-3 flex items-center gap-2';
+const supportLineClass = 'mt-3 flex flex-wrap items-center gap-2';
 
 const supportSubjectClass =
   'shrink-0 py-3 text-2xl font-black text-slate-950';
 
-const supportFixedTextClass = 'shrink-0 py-3 text-2xl font-bold text-slate-950';
+const supportFixedTextClass = 'py-3 text-2xl font-bold text-slate-950';
 
 const supportInputSizerClass =
   'col-start-1 row-start-1 invisible min-h-14 min-w-40 max-w-full whitespace-pre rounded-lg border-2 px-4 py-2 text-2xl font-bold';
@@ -48,10 +48,10 @@ const supportInputSizerClass =
 const supportInputWrapClass = 'inline-grid max-w-full min-w-0';
 
 const nameBlankClass =
-  'min-h-14 border-0 bg-slate-50 px-4 py-2 text-center align-baseline text-2xl font-bold text-sky-950 placeholder:text-slate-400 focus:outline-none';
+  'min-h-14 border-0 bg-slate-50 px-4 py-2 text-left align-baseline text-2xl font-bold text-sky-950 placeholder:text-slate-400 focus:outline-none';
 
 const particleSelectClass =
-  'min-h-14 border-0 bg-slate-50 px-3 py-2 align-baseline text-2xl font-black text-sky-950 focus:outline-none';
+  'particle-select min-h-14 border-0 border-l-2 border-slate-200 bg-slate-50 px-3 py-2 align-baseline text-2xl font-black text-sky-950 focus:outline-none';
 
 const nameParticleGroupClass =
   'mx-1 my-1 inline-flex overflow-hidden rounded-lg border-2 border-slate-200 bg-slate-50 align-baseline shadow-[inset_0_-3px_0_rgba(148,163,184,0.35)] transition focus-within:border-sky-500 focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(14,165,233,0.12)]';
@@ -201,7 +201,7 @@ export function CharacterForm({
             <p className={sentenceClass}>
               <span
                 className={nameParticleGroupClass}
-                style={getBlankStyle(form.name, 8, 12, 20)}
+                style={getBlankStyle(form.name, 8.5, 12.5, 23)}
               >
                 <input
                   aria-label="캐릭터 이름"

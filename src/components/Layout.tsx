@@ -4,8 +4,10 @@ import { checkGeminiConfiguration } from '../services/geminiStatusService';
 
 type LayoutProps = {
   children: ReactNode;
-  title?: string;
+  title?: ReactNode;
+  headerAction?: ReactNode;
   isHome: boolean;
+  showTeacherButton: boolean;
   onHome: () => void;
   onTeacher: () => void;
 };
@@ -13,7 +15,15 @@ type LayoutProps = {
 type SupabaseStatus = 'checking' | 'connected' | 'disconnected';
 type GeminiStatus = 'checking' | 'configured' | 'missing';
 
-export function Layout({ children, title = '캐릭터 문단 배틀', isHome, onHome, onTeacher }: LayoutProps) {
+export function Layout({
+  children,
+  title = '캐릭터 문단 배틀',
+  headerAction,
+  isHome,
+  showTeacherButton,
+  onHome,
+  onTeacher,
+}: LayoutProps) {
   const [supabaseStatus, setSupabaseStatus] = useState<SupabaseStatus>('checking');
   const [geminiStatus, setGeminiStatus] = useState<GeminiStatus>('checking');
 
@@ -72,12 +82,13 @@ export function Layout({ children, title = '캐릭터 문단 배틀', isHome, on
             />
           </div>
           <div className="flex items-center gap-3">
-            {isHome && (
+            {headerAction}
+            {isHome && showTeacherButton && (
               <button
                 className="rounded-md border border-slate-200 px-3 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                 onClick={onTeacher}
               >
-                교사용
+                교사용 관리
               </button>
             )}
             {!isHome && (

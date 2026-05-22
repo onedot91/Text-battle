@@ -43,18 +43,16 @@ function BattleCharacterPanel({ tone, character, fallbackId, isWinner }: BattleC
     tone === 'sky'
       ? 'border-sky-100 bg-sky-50 text-sky-700'
       : 'border-rose-100 bg-rose-50 text-rose-700';
-  const winnerClass = isWinner ? 'border-yellow-300 bg-yellow-50 ring-4 ring-yellow-100' : toneClass;
+  const winnerClass = isWinner ? `${toneClass} battle-history-winner` : toneClass;
 
   return (
-    <div className={`rounded-lg border p-4 ${winnerClass}`}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        {isWinner && (
-          <span className="rounded-full bg-yellow-200 px-3 py-1 text-sm font-black text-yellow-950">
-            🏆 승리
-          </span>
-        )}
-      </div>
-      <p className="mt-2 text-2xl font-black leading-tight text-slate-950">
+    <div className={`battle-history-character-panel rounded-lg border p-4 ${winnerClass}`}>
+      {isWinner && (
+        <span className="battle-history-win-chip rounded-full px-3 py-1 text-sm font-black">
+          승리
+        </span>
+      )}
+      <p className="battle-history-character-name text-2xl font-black leading-tight text-slate-950">
         {characterLabel(character, fallbackId)}
       </p>
     </div>
@@ -97,25 +95,8 @@ export function BattleHistory({ studentNumber }: BattleHistoryProps) {
     [],
   );
 
-  const unreadCount = unreadIncomingRecordIds.size;
-
   return (
     <div className="space-y-5">
-      <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-sm font-bold text-slate-500">내 캐릭터 배틀 기록</p>
-            <h2 className="text-3xl font-black text-slate-950">{studentNumber}번 기록 보기</h2>
-          </div>
-          <div className="flex flex-wrap gap-2 text-sm font-black">
-            {unreadCount > 0 && (
-              <span className="rounded-full bg-rose-100 px-3 py-1 text-rose-800">새 알림 {unreadCount}</span>
-            )}
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">전체 {records.length}개</span>
-          </div>
-        </div>
-      </section>
-
       {isLoading && <LoadingMessage message="기록을 불러오는 중입니다." />}
       <ErrorMessage message={error} />
 

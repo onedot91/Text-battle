@@ -18,7 +18,11 @@ export function CharacterCard({ character, battleStats, onSetRepresentative, onE
   const totalBattles = (battleStats?.wins ?? 0) + (battleStats?.losses ?? 0);
 
   return (
-    <article className="rounded-lg border-2 border-slate-100 bg-white p-6 shadow-sm">
+    <article
+      className={`character-card rounded-lg border-2 border-slate-100 bg-white p-6 shadow-sm ${
+        character.is_representative ? 'character-card-representative' : ''
+      }`}
+    >
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <h3 className="text-2xl font-black text-slate-900">{character.name}</h3>
         {character.is_representative && (

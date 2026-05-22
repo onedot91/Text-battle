@@ -45,18 +45,28 @@ export function BattleResult({ characterA, characterB, situation, result }: Batt
     <div className="space-y-6">
       <section className="result-summary-section rounded-lg bg-white p-6 shadow-sm">
         <div className="result-matchup flex flex-wrap items-center gap-4">
-          <div className="result-contender flex min-w-0 items-center gap-3">
+          <div
+            className={`result-contender flex min-w-0 items-center gap-3 ${
+              result.winner === 'A' ? 'result-contender-winner' : ''
+            }`}
+          >
             <span className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-lg font-black text-white">
               {characterA.student_number}번
             </span>
             <h2 className="result-name text-3xl font-black text-sky-950">{characterA.name}</h2>
+            {result.winner === 'A' && <span className="result-win-chip">승리</span>}
           </div>
           <span className="result-vs text-2xl font-black text-slate-400">VS</span>
-          <div className="result-contender flex min-w-0 items-center gap-3">
+          <div
+            className={`result-contender flex min-w-0 items-center gap-3 ${
+              result.winner === 'B' ? 'result-contender-winner' : ''
+            }`}
+          >
             <span className="shrink-0 rounded-full bg-rose-600 px-4 py-2 text-lg font-black text-white">
               {characterB.student_number}번
             </span>
             <h2 className="result-name text-3xl font-black text-rose-950">{characterB.name}</h2>
+            {result.winner === 'B' && <span className="result-win-chip">승리</span>}
           </div>
         </div>
         {result.usedFallback && (
@@ -73,25 +83,25 @@ export function BattleResult({ characterA, characterB, situation, result }: Batt
         <p className="text-2xl font-black leading-8 text-slate-950">{situation.title}</p>
       </section>
 
-      <section className="flex min-h-[500px] flex-col justify-between rounded-lg border-4 border-yellow-200 bg-yellow-50 px-7 py-8 shadow-sm sm:min-h-[560px] sm:px-12 sm:py-10">
+      <section className="result-story-section flex min-h-[500px] flex-col justify-between rounded-lg border-4 border-yellow-200 bg-yellow-50 px-7 py-8 shadow-sm sm:min-h-[560px] sm:px-12 sm:py-10">
         <p className="max-w-[64em] whitespace-pre-line break-keep text-xl font-semibold leading-[2.05] text-slate-950 sm:text-[1.55rem] sm:leading-[2]">
           {visibleStory}
           {!isComplete && <span className="ml-1 inline-block h-6 w-1 translate-y-1 animate-pulse bg-yellow-900" />}
         </p>
 
         <div
-          className={`mt-10 border-t-2 border-yellow-200 pt-6 text-right transition-all duration-700 ${
+          className={`winner-reveal mt-10 border-t-2 border-yellow-200 pt-6 text-right transition-all duration-700 ${
             isComplete ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
           }`}
           aria-hidden={!isComplete}
         >
-          <p className="text-base font-black text-yellow-950 sm:text-lg">승리 캐릭터</p>
-          <div className="mt-2 flex flex-wrap items-center justify-end gap-3">
-            <span className="rounded-full bg-yellow-200 px-4 py-2 text-lg font-black text-yellow-950">
+          <div className="winner-reveal-header">
+            <p className="winner-reveal-label text-base font-black text-yellow-950 sm:text-lg">승리 캐릭터</p>
+            <span className="winner-number rounded-full bg-yellow-200 px-4 py-2 text-lg font-black text-yellow-950">
               {winnerCharacter.student_number}번
             </span>
-            <p className="text-4xl font-black leading-tight text-yellow-900 sm:text-5xl">{result.winnerName}</p>
           </div>
+          <p className="winner-name text-4xl font-black leading-tight text-yellow-900 sm:text-5xl">{result.winnerName}</p>
         </div>
       </section>
     </div>

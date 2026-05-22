@@ -6,22 +6,16 @@ import { getUnreadIncomingBattleRecords } from '../utils/battleNotifications';
 
 type HomeProps = {
   studentNumber: number;
-  onStudentNumberChange: (studentNumber: number) => void;
   onNavigate: (view: 'form' | 'book' | 'battle' | 'history') => void;
 };
 
-const MIN_STUDENT_NUMBER = 1;
-const MAX_STUDENT_NUMBER = 23;
-
-export function Home({ studentNumber, onStudentNumberChange, onNavigate }: HomeProps) {
-  const [studentNumberInput, setStudentNumberInput] = useState(String(studentNumber));
+export function Home({ studentNumber, onNavigate }: HomeProps) {
   const [representative, setRepresentative] = useState<Character | null>(null);
   const [incomingBattleCount, setIncomingBattleCount] = useState(0);
   const [isLoadingRepresentative, setIsLoadingRepresentative] = useState(false);
   const [isBattleReady, setIsBattleReady] = useState(false);
 
   useEffect(() => {
-    setStudentNumberInput(String(studentNumber));
     setIsBattleReady(false);
   }, [studentNumber]);
 
@@ -52,42 +46,18 @@ export function Home({ studentNumber, onStudentNumberChange, onNavigate }: HomeP
     };
   }, [studentNumber]);
 
-  const updateStudentNumber = (nextNumber: number) => {
-    if (Number.isInteger(nextNumber) && nextNumber >= MIN_STUDENT_NUMBER && nextNumber <= MAX_STUDENT_NUMBER) {
-      onStudentNumberChange(nextNumber);
-    }
-  };
-
-  const handleStudentNumberInput = (value: string) => {
-    const digitsOnly = value.replace(/\D/g, '').slice(0, 2);
-    setStudentNumberInput(digitsOnly);
-
-    const nextNumber = Number(digitsOnly);
-    if (digitsOnly && nextNumber >= MIN_STUDENT_NUMBER && nextNumber <= MAX_STUDENT_NUMBER) {
-      updateStudentNumber(nextNumber);
-    }
-  };
-
   return (
     <div className="home-shell">
       <section className="home-board mx-auto max-w-6xl rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="home-command-grid grid gap-4 lg:grid-cols-[12rem_minmax(0,1fr)_12rem] lg:items-stretch">
           <div className="home-number-card rounded-lg border-2 border-slate-200 bg-slate-50 p-5">
-            <label className="block text-base font-black text-slate-500" htmlFor="student-number-input">
+            <p className="block text-base font-black text-slate-500">
               번호
-            </label>
-            <div className="mt-3 grid grid-cols-[1fr_3rem] overflow-hidden rounded-lg border-2 border-slate-200 bg-white focus-within:border-sky-500 focus-within:ring-4 focus-within:ring-sky-100">
-              <input
-                id="student-number-input"
-                className="h-20 min-w-0 px-3 text-center text-5xl font-black text-slate-950 outline-none"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={2}
-                value={studentNumberInput}
-                onBlur={() => setStudentNumberInput(String(studentNumber))}
-                onChange={(event) => handleStudentNumberInput(event.target.value)}
-              />
+            </p>
+            <div className="mt-3 grid grid-cols-[1fr_3rem] overflow-hidden rounded-lg border-2 border-slate-200 bg-white">
+              <div className="flex h-20 min-w-0 items-center justify-center px-3 text-center text-5xl font-black text-slate-950">
+                {studentNumber}
+              </div>
               <div className="flex items-center justify-center border-l-2 border-slate-200 bg-slate-50 text-xl font-black text-slate-600">
                 번
               </div>
