@@ -10,7 +10,7 @@ type BattleResultProps = {
   onHome: () => void;
 };
 
-const TYPE_SPEED_MS = 48;
+const TYPE_SPEED_MS = 60;
 
 export function BattleResult({ characterA, characterB, situation, result, onHome }: BattleResultProps) {
   const [visibleStory, setVisibleStory] = useState('');
@@ -90,17 +90,14 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
           {!isComplete && <span className="ml-1 inline-block h-6 w-1 translate-y-1 animate-pulse bg-yellow-900" />}
         </p>
 
-        <div
-          className={`winner-reveal mt-10 border-t-2 border-yellow-200 pt-6 text-right transition-all duration-700 ${
-            isComplete ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-          }`}
-          aria-hidden={!isComplete}
-        >
-          <div className="winner-reveal-header">
-            <p className="winner-reveal-label text-base font-black text-yellow-950 sm:text-lg">승리 캐릭터</p>
+        {isComplete && (
+          <div className="winner-reveal mt-10 border-t-2 border-yellow-200 pt-6 text-right opacity-0 animate-[winnerFadeIn_700ms_ease-out_forwards]">
+            <div className="winner-reveal-header">
+              <p className="winner-reveal-label text-base font-black text-yellow-950 sm:text-lg">승리 캐릭터</p>
+            </div>
+            <p className="winner-name text-4xl font-black leading-tight text-yellow-900 sm:text-5xl">{result.winnerName}</p>
           </div>
-          <p className="winner-name text-4xl font-black leading-tight text-yellow-900 sm:text-5xl">{result.winnerName}</p>
-        </div>
+        )}
       </section>
 
       <div className="flex justify-end">

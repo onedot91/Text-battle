@@ -279,10 +279,11 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
         rewrite_tip: null,
       };
 
-      void createBattleRecord(record).catch(() => setNotice('기록 저장 실패'));
+      await createBattleRecord(record);
       onResult({ characterA, characterB, situation, result });
-    } catch {
-      showError('데이터를 불러오지 못했습니다.');
+    } catch (battleError) {
+      console.error('Battle failed.', battleError);
+      showError('배틀을 완료하지 못했습니다. 다시 시도해 주세요.');
     } finally {
       activeBattleRequests.delete(myNumber);
       setIsLoading(false);

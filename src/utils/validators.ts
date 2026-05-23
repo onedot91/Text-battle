@@ -11,9 +11,58 @@ const forbiddenWords = [
   '공격해서 없애',
 ];
 
+export const unfairPowerPhrases = [
+  '무조건 이긴',
+  '무조건 이김',
+  '무조건 승리',
+  '항상 이긴',
+  '항상 이김',
+  '항상 승리',
+  '절대 지지',
+  '절대 안 지',
+  '절대 이긴',
+  '이길 수밖에',
+  '이길 수 있다',
+  '이길수있다',
+  '승리 확정',
+  '필승',
+  '무패',
+  '무적',
+  '전능',
+  '최강',
+  '상대가 못',
+  '상대를 못',
+  '상대방을 이길',
+  '상대방이 못',
+  '상상을 실현',
+  '상상을 현실',
+  '상상으로',
+  '상상한 대로',
+  '상상한대로',
+  '현실로 만든',
+  '현실로 바꾼',
+  '원하는 대로',
+  '원하는대로',
+  '뭐든지',
+  '무엇이든',
+  '모든 것을',
+  '모든걸',
+  '어떤 상황',
+  '모든 상황',
+];
+
+function normalizeForValidation(value: string) {
+  return value.replace(/\s+/g, '').toLowerCase();
+}
+
 export function containsForbiddenWords(value: string) {
-  const compactValue = value.replace(/\s+/g, '').toLowerCase();
-  return forbiddenWords.some((word) => compactValue.includes(word.replace(/\s+/g, '').toLowerCase()));
+  const compactValue = normalizeForValidation(value);
+  return forbiddenWords.some((word) => compactValue.includes(normalizeForValidation(word)));
+}
+
+export function containsUnfairPowerWords(value: string) {
+  const compactValue = normalizeForValidation(value);
+  return unfairPowerPhrases.some((phrase) => compactValue.includes(normalizeForValidation(phrase)));
 }
 
 export function validateStudentNumber(value: string | number) {

@@ -1,6 +1,7 @@
 import { situations } from '../data/situations';
 import type { BattleResult, Character, Situation } from '../types';
 import { getFullParagraph } from './characterText';
+import { containsUnfairPowerWords } from './validators';
 
 export function pickRandomSituation() {
   return situations[Math.floor(Math.random() * situations.length)];
@@ -71,6 +72,8 @@ function removeAll(value: string, words: string[]) {
 
 function getScorableText(character: Character) {
   const text = normalizeForScoring(getFullParagraph(character));
+  if (containsUnfairPowerWords(text)) return '';
+
   const hasOverbroadPower = overbroadPowerPhrases.some((phrase) => text.includes(normalizeForScoring(phrase)));
   const withoutDirectWins = removeAll(text, directWinPhrases);
 
@@ -93,6 +96,19 @@ function firstSupport(character: Character) {
   return character.support1_blank.replace(/[.!?。！？]+$/g, '');
 }
 
+function fairStoryAbility(character: Character) {
+  return containsUnfairPowerWords(character.ability_blank) ? '침착하게 살피는' : character.ability_blank;
+}
+
+function fairStorySupport(character: Character) {
+  const support = firstSupport(character);
+  return containsUnfairPowerWords(support) ? '차분히 움직인' : support;
+}
+
+function pickOne<T>(items: T[]) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
 export function generateFallbackBattle(characterA: Character, characterB: Character, situation: Situation): BattleResult {
   const scoreA = calculateKeywordScore(characterA, situation);
   const scoreB = calculateKeywordScore(characterB, situation);
@@ -112,13 +128,39 @@ export function generateFallbackBattle(characterA: Character, characterB: Charac
   const isUpset = shouldReverse || winnerScore < loserScore;
   const closeResult = Math.abs(totalA - totalB) < 0.8;
   const resultTurn = isUpset
-    ? '마지막 순간, 모두가 숨을 멈출 만큼 뜻밖의 기회가 생겼습니다.'
+    ? pickOne([
+        '그때 작은 실수가 오히려 새 길을 열었습니다.',
+        '모두가 놓친 빈틈이 딱 하나 보였습니다.',
+        '잠깐 멈춘 사이 승부의 방향이 바뀌었습니다.',
+      ])
     : closeResult
-      ? '끝까지 차이가 거의 나지 않아 결과를 알 수 없었습니다.'
-      : '딱 그때, 상황에 더 잘 맞는 방법이 분명해졌습니다.';
+      ? pickOne([
+          '둘의 차이는 종이 한 장만큼이나 작았습니다.',
+          '누가 앞서는지 보던 친구들도 고개를 갸웃했습니다.',
+          '결과가 보일 듯 말 듯 계속 흔들렸습니다.',
+        ])
+      : pickOne([
+          '그 순간 상황에 꼭 맞는 움직임이 또렷하게 보였습니다.',
+          '조용하던 분위기가 한 번에 바뀌었습니다.',
+          '작은 선택 하나가 승부를 밀어 주었습니다.',
+        ]);
+  const opening = pickOne([
+    `${situation.title} 차례가 오자 ${characterA.name}과 ${characterB.name}의 어깨가 살짝 올라갔습니다.`,
+    `${situation.title} 앞에서 ${characterA.name}과 ${characterB.name}은 서로 다른 표정으로 첫발을 내디뎠습니다.`,
+    `친구들이 숨을 죽인 가운데 ${characterA.name}과 ${characterB.name}의 ${situation.title}이 벌어졌습니다.`,
+  ]);
+  const firstMove = pickOne([
+    `${subject(characterA)} ${fairStoryAbility(characterA)} 태도로 흐름을 잡았고, ${subject(characterB)} ${fairStoryAbility(characterB)} 움직임으로 바로 따라붙었습니다.`,
+    `${subject(characterA)} ${fairStorySupport(characterA)} 점을 살려 먼저 분위기를 가져갔지만, ${subject(characterB)} ${fairStorySupport(characterB)} 모습으로 금방 균형을 맞췄습니다.`,
+  ]);
+  const smallMoment = pickOne([
+    '친구들은 작은 소리에도 눈을 크게 뜨며 결과를 기다렸습니다.',
+    '잠깐 흔들리는 순간이 있었지만 둘 다 쉽게 물러서지 않았습니다.',
+    '손끝에 힘이 들어가자 주변이 조용해졌습니다.',
+  ]);
 
   return {
-    story: `${situation.title}이 시작되자 ${characterA.name}과 ${characterB.name}이 나란히 준비했습니다. ${subject(characterA)} ${characterA.ability_blank} 모습으로 먼저 앞서 나갔지만, ${subject(characterB)} ${characterB.ability_blank} 모습으로 눈 깜짝할 사이에 따라붙었습니다. ${resultTurn} ${subject(winner)} ${firstSupport(winner)} 점을 살려 마지막 고비를 아슬아슬하게 넘겼습니다. ${loser.name}도 끝까지 잘 버텼지만, ${winner.name}이 간발의 차이로 이겼습니다.`,
+    story: `${opening} ${firstMove} ${smallMoment} ${resultTurn} ${subject(winner)} ${fairStorySupport(winner)} 점을 살려 흔들리던 흐름을 붙잡았고, ${loser.name}도 끝까지 버텼지만 ${winner.name}이 이겼습니다.`,
     winner: winnerLabel,
     winnerCharacterId: winner.id,
     winnerName: winner.name,
