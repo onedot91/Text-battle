@@ -10,7 +10,7 @@ type BattleResultProps = {
   onHome: () => void;
 };
 
-const TYPE_SPEED_MS = 60;
+const TYPE_SPEED_MS = 95;
 
 export function BattleResult({ characterA, characterB, situation, result, onHome }: BattleResultProps) {
   const [visibleStory, setVisibleStory] = useState('');

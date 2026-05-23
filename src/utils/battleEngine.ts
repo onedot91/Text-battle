@@ -129,38 +129,38 @@ export function generateFallbackBattle(characterA: Character, characterB: Charac
   const closeResult = Math.abs(totalA - totalB) < 0.8;
   const resultTurn = isUpset
     ? pickOne([
-        '그때 작은 실수가 오히려 새 길을 열었습니다.',
-        '모두가 놓친 빈틈이 딱 하나 보였습니다.',
-        '잠깐 멈춘 사이 승부의 방향이 바뀌었습니다.',
+        '그때 작은 실수가 오히려 새 길처럼 반짝였습니다.',
+        '모두가 놓친 빈틈 하나가 햇빛처럼 드러났습니다.',
+        '잠깐 멈춘 사이, 승부의 방향이 물결처럼 돌아섰습니다.',
       ])
     : closeResult
       ? pickOne([
-          '둘의 차이는 종이 한 장만큼이나 작았습니다.',
-          '누가 앞서는지 보던 친구들도 고개를 갸웃했습니다.',
-          '결과가 보일 듯 말 듯 계속 흔들렸습니다.',
+          '둘의 차이는 종이 한 장만큼 얇아서 친구들의 눈도 바빠졌습니다.',
+          '누가 앞서는지 보던 친구들의 고개가 바람에 흔들리는 풀처럼 움직였습니다.',
+          '결과는 보일 듯 말 듯, 물 위의 그림자처럼 계속 흔들렸습니다.',
         ])
       : pickOne([
-          '그 순간 상황에 꼭 맞는 움직임이 또렷하게 보였습니다.',
-          '조용하던 분위기가 한 번에 바뀌었습니다.',
-          '작은 선택 하나가 승부를 밀어 주었습니다.',
+          '그 순간 상황에 꼭 맞는 움직임이 하얀 선처럼 또렷하게 보였습니다.',
+          '조용하던 공기가 한 번 출렁이며 달라졌습니다.',
+          '작은 선택 하나가 뒤에서 등을 밀어 주는 바람이 되었습니다.',
         ]);
   const opening = pickOne([
-    `${situation.title} 차례가 오자 ${characterA.name}과 ${characterB.name}의 어깨가 살짝 올라갔습니다.`,
+    `${situation.title} 차례가 오자 ${characterA.name}과 ${characterB.name}의 어깨 위로 조용한 긴장이 내려앉았습니다.`,
     `${situation.title} 앞에서 ${characterA.name}과 ${characterB.name}은 서로 다른 표정으로 첫발을 내디뎠습니다.`,
-    `친구들이 숨을 죽인 가운데 ${characterA.name}과 ${characterB.name}의 ${situation.title}이 벌어졌습니다.`,
+    `친구들이 숨을 죽인 가운데 ${characterA.name}과 ${characterB.name}의 ${situation.title}이 작은 북소리처럼 시작되었습니다.`,
   ]);
   const firstMove = pickOne([
-    `${subject(characterA)} ${fairStoryAbility(characterA)} 태도로 흐름을 잡았고, ${subject(characterB)} ${fairStoryAbility(characterB)} 움직임으로 바로 따라붙었습니다.`,
-    `${subject(characterA)} ${fairStorySupport(characterA)} 점을 살려 먼저 분위기를 가져갔지만, ${subject(characterB)} ${fairStorySupport(characterB)} 모습으로 금방 균형을 맞췄습니다.`,
+    `${subject(characterA)} ${fairStoryAbility(characterA)} 태도로 앞을 열었고, ${subject(characterB)} ${fairStoryAbility(characterB)} 움직임으로 바로 옆까지 따라붙었습니다.`,
+    `${subject(characterA)} ${fairStorySupport(characterA)} 점을 살려 먼저 반짝였지만, ${subject(characterB)} ${fairStorySupport(characterB)} 모습으로 금방 균형을 맞췄습니다.`,
   ]);
   const smallMoment = pickOne([
-    '친구들은 작은 소리에도 눈을 크게 뜨며 결과를 기다렸습니다.',
-    '잠깐 흔들리는 순간이 있었지만 둘 다 쉽게 물러서지 않았습니다.',
-    '손끝에 힘이 들어가자 주변이 조용해졌습니다.',
+    '친구들은 작은 소리에도 눈을 크게 떴고, 교실의 공기는 잠시 멈춘 듯했습니다.',
+    '잠깐 흔들리는 순간이 있었지만 둘 다 쉽게 물러서지 않아 긴장이 팽팽해졌습니다.',
+    '손끝에 힘이 들어가자 주변의 소리가 솜 속으로 들어간 것처럼 조용해졌습니다.',
   ]);
 
   return {
-    story: `${opening} ${firstMove} ${smallMoment} ${resultTurn} ${subject(winner)} ${fairStorySupport(winner)} 점을 살려 흔들리던 흐름을 붙잡았고, ${loser.name}도 끝까지 버텼지만 ${winner.name}이 이겼습니다.`,
+    story: `${opening} ${firstMove} ${smallMoment} ${resultTurn} ${subject(winner)} ${fairStorySupport(winner)} 점을 살려 흔들리던 순간을 붙잡았고, ${loser.name}도 끝까지 버텼지만 ${winner.name}이 이겼습니다.`,
     winner: winnerLabel,
     winnerCharacterId: winner.id,
     winnerName: winner.name,

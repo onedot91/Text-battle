@@ -57,6 +57,7 @@ export default function App() {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isResettingClassroom, setIsResettingClassroom] = useState(false);
   const [resetError, setResetError] = useState('');
+  const [homeBattleNotice, setHomeBattleNotice] = useState('');
 
   const setStudentNumber = (nextStudentNumber: number) => {
     setStudentNumberState(nextStudentNumber);
@@ -153,7 +154,11 @@ export default function App() {
         <Home
           studentNumber={studentNumber}
           canOpenTeacher={studentNumber === HIDDEN_TEACHER_STUDENT_NUMBER}
-          onNavigate={(nextView) => setView(nextView)}
+          initialBattleNotice={homeBattleNotice}
+          onNavigate={(nextView) => {
+            setHomeBattleNotice('');
+            setView(nextView);
+          }}
           onTeacher={() => setView('teacher')}
         />
       )}
@@ -177,6 +182,10 @@ export default function App() {
           onResult={(payload) => {
             setResultPayload(payload);
             setView('result');
+          }}
+          onUnavailable={(message) => {
+            setHomeBattleNotice(message);
+            setView('home');
           }}
         />
       )}

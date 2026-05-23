@@ -40,11 +40,11 @@ textarea:focus-visible {
 }
 
 .slot-reel-spinning {
-  animation: slot-reel-spin 0.58s cubic-bezier(0.62, 0.01, 0.28, 1) infinite;
+  animation: slot-reel-spin var(--reel-spin-duration, 2.4s) linear infinite;
 }
 
 .slot-reel-settled {
-  transform: translateY(var(--roulette-settle-y, -190px));
+  transform: translateY(var(--roulette-settle-y, -114px));
   animation: slot-reel-lock 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -53,19 +53,19 @@ textarea:focus-visible {
     transform: translateY(-3px);
   }
   100% {
-    transform: translateY(calc(var(--reel-step-negative, -62px) - 3px));
+    transform: translateY(var(--reel-spin-y, -291px));
   }
 }
 
 @keyframes slot-reel-lock {
   0% {
-    transform: translateY(calc(var(--roulette-settle-y, -189px) - var(--reel-step, 62px)));
+    transform: translateY(calc(var(--roulette-settle-y, -114px) - var(--reel-step, 48px)));
   }
   70% {
-    transform: translateY(calc(var(--roulette-settle-y, -189px) + 10px));
+    transform: translateY(calc(var(--roulette-settle-y, -114px) + 10px));
   }
   100% {
-    transform: translateY(var(--roulette-settle-y, -189px));
+    transform: translateY(var(--roulette-settle-y, -114px));
   }
 }
 
@@ -509,12 +509,12 @@ textarea:focus-visible {
 
   .battle-roulette-panel {
     --roulette-note: #dceeb1;
-    --reel-window-h: clamp(108px, 12vh, 126px);
-    --reel-item-h: clamp(38px, 4.5vh, 44px);
+    --reel-window-h: 196px;
+    --reel-item-h: 40px;
     --reel-item-gap: 8px;
-    --reel-step: 52px;
-    --reel-step-negative: -52px;
-    --roulette-settle-y: -159px;
+    --reel-step: 48px;
+    --reel-step-negative: -48px;
+    --roulette-settle-y: -114px;
     position: relative;
     isolation: isolate;
     border: 1px solid #000000 !important;
@@ -606,7 +606,7 @@ textarea:focus-visible {
   }
 
   .battle-reel-fade {
-    height: clamp(28px, 3.8vh, 38px) !important;
+    height: 48px !important;
   }
 
   .battle-reel-fade-top {
@@ -651,7 +651,7 @@ textarea:focus-visible {
     border-color: transparent !important;
     background: transparent !important;
     color: #000000 !important;
-    font-size: clamp(1.28rem, 1.65vw, 1.9rem) !important;
+    font-size: clamp(1.16rem, 1.45vw, 1.65rem) !important;
     font-weight: 340 !important;
     line-height: 1.05 !important;
     opacity: 0.42;

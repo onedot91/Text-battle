@@ -1,25 +1,34 @@
 import { useEffect, useState } from 'react';
 import type { Character } from '../types';
-import { getRepresentativeCharacter } from '../services/characterService';
-import { getBattleRecordsForStudentNumber, type StudentBattleRecord } from '../services/battleService';
+import { getRandomBattleOpponentCandidates, getRepresentativeCharacter } from '../services/characterService';
+import {
+  DAILY_BATTLE_LIMIT_PER_CHARACTER,
+  getBattleRecordsForStudentNumber,
+  getRemainingDailyBattlesFromCount,
+  getTodayBattleCountByCharacterId,
+  type StudentBattleRecord,
+} from '../services/battleService';
 import { getBestCurrentWinStreak, type CharacterWinStreak } from '../utils/battleStreaks';
 import { getUnreadIncomingBattleRecords } from '../utils/battleNotifications';
-import { playChargeSound, playStartSound } from '../utils/soundEffects';
+import { playChargeSound, playErrorSound, playStartSound } from '../utils/soundEffects';
 
 type HomeProps = {
   studentNumber: number;
   canOpenTeacher: boolean;
+  initialBattleNotice?: string;
   onNavigate: (view: 'form' | 'book' | 'battle' | 'history') => void;
   onTeacher: () => void;
 };
 
-export function Home({ studentNumber, canOpenTeacher, onNavigate, onTeacher }: HomeProps) {
+export function Home({ studentNumber, canOpenTeacher, initialBattleNotice = '', onNavigate, onTeacher }: HomeProps) {
   const [representative, setRepresentative] = useState<Character | null>(null);
   const [incomingBattleCount, setIncomingBattleCount] = useState(0);
   const [incomingTargetName, setIncomingTargetName] = useState('');
   const [bestWinStreak, setBestWinStreak] = useState<CharacterWinStreak | null>(null);
   const [isLoadingRepresentative, setIsLoadingRepresentative] = useState(false);
   const [isBattleReady, setIsBattleReady] = useState(false);
+  const [battleNotice, setBattleNotice] = useState('');
+  const [isCheckingBattle, setIsCheckingBattle] = useState(false);
 
   const getIncomingTargetName = (records: StudentBattleRecord[], fallbackCharacter: Character | null) => {
     const targetNames = Array.from(
@@ -33,7 +42,66 @@ export function Home({ studentNumber, canOpenTeacher, onNavigate, onTeacher }: H
 
   useEffect(() => {
     setIsBattleReady(false);
+    setBattleNotice('');
   }, [studentNumber]);
+
+  useEffect(() => {
+    setBattleNotice(initialBattleNotice);
+    if (initialBattleNotice) setIsBattleReady(false);
+  }, [initialBattleNotice]);
+
+  const showBattleNotice = (message: string) => {
+    playErrorSound();
+    setBattleNotice(message);
+    setIsBattleReady(false);
+  };
+
+  const handleBattleButtonClick = async () => {
+    setBattleNotice('');
+
+    if (!isBattleReady) {
+      playChargeSound();
+      setIsBattleReady(true);
+      return;
+    }
+
+    if (isCheckingBattle) return;
+
+    setIsCheckingBattle(true);
+    try {
+      const [latestRepresentative, opponentCandidates] = await Promise.all([
+        getRepresentativeCharacter(studentNumber),
+        getRandomBattleOpponentCandidates(studentNumber),
+      ]);
+
+      if (!latestRepresentative) {
+        showBattleNotice('대표 캐릭터를 먼저 정해 주세요.');
+        return;
+      }
+
+      if (opponentCandidates.length === 0) {
+        showBattleNotice('배틀할 수 있는 다른 대표 캐릭터가 아직 없어요.');
+        return;
+      }
+
+      const todayBattleCountByCharacterId = await getTodayBattleCountByCharacterId([latestRepresentative.id]);
+      const remainingBattles = getRemainingDailyBattlesFromCount(
+        todayBattleCountByCharacterId.get(latestRepresentative.id) ?? 0,
+      );
+
+      if (remainingBattles <= 0) {
+        showBattleNotice(`오늘 이 캐릭터의 배틀 횟수 ${DAILY_BATTLE_LIMIT_PER_CHARACTER}회를 모두 사용했습니다.`);
+        return;
+      }
+
+      playStartSound();
+      onNavigate('battle');
+    } catch {
+      showBattleNotice('배틀 준비 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsCheckingBattle(false);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -119,17 +187,10 @@ export function Home({ studentNumber, canOpenTeacher, onNavigate, onTeacher }: H
               }`}
               type="button"
               data-sound-effect="custom"
-              onClick={() => {
-                if (isBattleReady) {
-                  playStartSound();
-                  onNavigate('battle');
-                  return;
-                }
-                playChargeSound();
-                setIsBattleReady(true);
-              }}
+              disabled={isCheckingBattle}
+              onClick={() => void handleBattleButtonClick()}
             >
-              {isBattleReady ? '배틀 시작' : 'VS'}
+              {isCheckingBattle ? '확인 중' : isBattleReady ? '배틀 시작' : 'VS'}
             </button>
 
             <div className="matchup-card matchup-card-right rounded-lg border-2 border-rose-100 bg-rose-50 p-6">
@@ -189,6 +250,12 @@ export function Home({ studentNumber, canOpenTeacher, onNavigate, onTeacher }: H
               {incomingBattleCount}명이 {incomingTargetName}에게 도전했어요!
             </span>
           </button>
+        )}
+
+        {battleNotice && (
+          <div className="mt-4 rounded-lg border-2 border-rose-200 bg-rose-50 px-5 py-4 text-lg font-black text-rose-800">
+            {battleNotice}
+          </div>
         )}
 
         {bestWinStreak && (

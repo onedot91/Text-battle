@@ -1,10 +1,12 @@
 import type { Character } from '../types';
+import { DAILY_BATTLE_LIMIT_PER_CHARACTER } from '../services/battleService';
 import { getFullParagraph } from '../utils/characterText';
 
 export type CharacterBattleStats = {
   wins: number;
   losses: number;
   currentWinStreak: number;
+  remainingDailyBattles: number;
 };
 
 type CharacterCardProps = {
@@ -17,6 +19,7 @@ type CharacterCardProps = {
 
 export function CharacterCard({ character, battleStats, onSetRepresentative, onEdit, onDelete }: CharacterCardProps) {
   const totalBattles = (battleStats?.wins ?? 0) + (battleStats?.losses ?? 0);
+  const remainingDailyBattles = battleStats?.remainingDailyBattles ?? DAILY_BATTLE_LIMIT_PER_CHARACTER;
 
   return (
     <article
@@ -31,6 +34,13 @@ export function CharacterCard({ character, battleStats, onSetRepresentative, onE
         )}
         <span className="rounded-full bg-slate-100 px-4 py-2 text-base font-black text-slate-700">
           {totalBattles > 0 ? `승 ${battleStats?.wins ?? 0} · 패 ${battleStats?.losses ?? 0}` : '전적 없음'}
+        </span>
+        <span
+          className={`rounded-full px-4 py-2 text-base font-black ${
+            remainingDailyBattles > 0 ? 'bg-sky-100 text-sky-800' : 'bg-rose-100 text-rose-800'
+          }`}
+        >
+          오늘 {remainingDailyBattles}/{DAILY_BATTLE_LIMIT_PER_CHARACTER}회
         </span>
         {(battleStats?.currentWinStreak ?? 0) >= 2 && (
           <span className="rounded-full bg-amber-300 px-4 py-2 text-base font-black text-amber-950">

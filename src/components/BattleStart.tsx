@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { BattleRecordInput, BattleResult, Character, Situation } from '../types';
-import { createBattleRecord, generateBattleWithGemini } from '../services/battleService';
+import {
+  DAILY_BATTLE_LIMIT_PER_CHARACTER,
+  createBattleRecord,
+  generateBattleWithGemini,
+  getRemainingDailyBattlesFromCount,
+  getTodayBattleCountByCharacterId,
+} from '../services/battleService';
 import { getRandomBattleOpponentCandidates, getRepresentativeCharacter } from '../services/characterService';
 import { generateFallbackBattle, pickRandomSituation } from '../utils/battleEngine';
 import { situations } from '../data/situations';
@@ -44,6 +51,7 @@ type BattleStartProps = {
     situation: Situation;
     result: BattleResult;
   }) => void;
+  onUnavailable?: (message: string) => void;
 };
 
 type RoulettePanelProps = {
@@ -52,6 +60,7 @@ type RoulettePanelProps = {
   value: string;
   items: string[];
   isSpinning: boolean;
+  showSelection?: boolean;
   singleChoice?: boolean;
   tone: 'sky' | 'rose' | 'emerald';
 };
@@ -74,17 +83,62 @@ const toneClasses = {
   },
 };
 
-function getReelItems(items: string[], value: string) {
+type RoulettePanelStyle = CSSProperties & {
+  '--reel-choice-count'?: number;
+  '--reel-spin-duration'?: string;
+  '--reel-spin-y'?: string;
+  '--roulette-settle-y'?: string;
+};
+
+const reelStepPx = 48;
+const reelCenterOffsetPx = 78;
+
+function getReelItems(items: string[], value: string, isSpinning: boolean) {
   const fallbackItems = items.length > 0 ? items : [value || '준비 중'];
-  const visibleItems = Array.from({ length: 12 }, (_, index) => fallbackItems[index % fallbackItems.length]);
   const centerValue = value || fallbackItems[0] || '준비 중';
-  visibleItems[4] = centerValue;
-  return visibleItems;
+  const selectedIndex = Math.max(0, fallbackItems.indexOf(centerValue));
+
+  if (isSpinning) {
+    return {
+      items: [...fallbackItems, ...fallbackItems],
+      selectedIndex,
+      choiceCount: fallbackItems.length,
+    };
+  }
+
+  const beforeCount = 3;
+  const afterCount = 5;
+  const settledItems = Array.from({ length: beforeCount + afterCount + 1 }, (_, index) => {
+    const offset = index - beforeCount;
+    const nextIndex = (selectedIndex + offset + fallbackItems.length) % fallbackItems.length;
+    return fallbackItems[nextIndex];
+  });
+
+  return {
+    items: settledItems,
+    selectedIndex: beforeCount,
+    choiceCount: fallbackItems.length,
+  };
 }
 
-function RoulettePanel({ title, badge, value, items, isSpinning, singleChoice = false, tone }: RoulettePanelProps) {
+function RoulettePanel({
+  title,
+  badge,
+  value,
+  items,
+  isSpinning,
+  showSelection = true,
+  singleChoice = false,
+  tone,
+}: RoulettePanelProps) {
   const classes = toneClasses[tone];
-  const reelItems = getReelItems(items, value);
+  const reel = getReelItems(items, value, isSpinning);
+  const reelStyle: RoulettePanelStyle = {
+    '--reel-choice-count': reel.choiceCount,
+    '--reel-spin-duration': `${Math.min(8, Math.max(1.8, reel.choiceCount * 0.08))}s`,
+    '--reel-spin-y': `${-(reel.choiceCount * reelStepPx) - 3}px`,
+    '--roulette-settle-y': `${reelCenterOffsetPx - reel.selectedIndex * reelStepPx}px`,
+  };
 
   return (
     <article className={`battle-roulette-panel overflow-hidden rounded-lg border-2 p-5 ${classes.box}`}>
@@ -117,12 +171,17 @@ function RoulettePanel({ title, badge, value, items, isSpinning, singleChoice = 
           <>
             <div className="battle-reel-fade battle-reel-fade-top pointer-events-none absolute inset-x-0 top-0 z-10 h-12" />
             <div className="battle-reel-fade battle-reel-fade-bottom pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12" />
-            <div className="battle-reel-focus pointer-events-none absolute inset-x-4 top-1/2 z-10 h-14 -translate-y-1/2 rounded-lg border-2 border-slate-900/10" />
-            <div className={`slot-reel ${isSpinning ? 'slot-reel-spinning' : 'slot-reel-settled'}`}>
-              {reelItems.map((item, index) => (
+            {(isSpinning || showSelection) && (
+              <div className="battle-reel-focus pointer-events-none absolute inset-x-4 top-1/2 z-10 h-14 -translate-y-1/2 rounded-lg border-2 border-slate-900/10" />
+            )}
+            <div
+              className={`slot-reel ${isSpinning ? 'slot-reel-spinning' : 'slot-reel-settled'}`}
+              style={reelStyle}
+            >
+              {reel.items.map((item, index) => (
                 <div
                   className={`battle-reel-item mx-4 my-2 flex h-14 items-center rounded-lg border-2 px-4 text-2xl font-black ${
-                    index === 4 && !isSpinning
+                    index === reel.selectedIndex && !isSpinning && showSelection
                       ? classes.active
                       : ''
                   }`}
@@ -139,7 +198,7 @@ function RoulettePanel({ title, badge, value, items, isSpinning, singleChoice = 
   );
 }
 
-export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartProps) {
+export function BattleStart({ initialStudentNumber = 1, onResult, onUnavailable }: BattleStartProps) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -156,6 +215,15 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
   const showError = (message: string) => {
     playErrorSound();
     setError(message);
+  };
+
+  const showUnavailable = (message: string) => {
+    if (onUnavailable) {
+      onUnavailable(message);
+      return;
+    }
+
+    showError(message);
   };
 
   const pickRandomOpponent = (candidates: Character[]) => {
@@ -236,12 +304,24 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
       ]);
 
       if (!characterA) {
-        showError('내 대표 캐릭터를 먼저 정해 주세요.');
+        showUnavailable('내 대표 캐릭터를 먼저 정해 주세요.');
         return;
       }
 
       if (opponentCandidates.length === 0) {
-        showError('배틀할 수 있는 다른 대표 캐릭터가 아직 없어요.');
+        showUnavailable('배틀할 수 있는 다른 대표 캐릭터가 아직 없어요.');
+        return;
+      }
+
+      const todayBattleCountByCharacterId = await getTodayBattleCountByCharacterId([
+        characterA.id,
+      ]);
+      const myRemainingBattles = getRemainingDailyBattlesFromCount(
+        todayBattleCountByCharacterId.get(characterA.id) ?? 0,
+      );
+
+      if (myRemainingBattles <= 0) {
+        showUnavailable(`오늘 이 캐릭터의 배틀 횟수 ${DAILY_BATTLE_LIMIT_PER_CHARACTER}회를 모두 사용했습니다.`);
         return;
       }
 
@@ -279,11 +359,20 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
         rewrite_tip: null,
       };
 
+      const latestBattleCountByCharacterId = await getTodayBattleCountByCharacterId([characterA.id]);
+      const canSaveBattle =
+        getRemainingDailyBattlesFromCount(latestBattleCountByCharacterId.get(characterA.id) ?? 0) > 0;
+
+      if (!canSaveBattle) {
+        showUnavailable('배틀 횟수가 모두 사용되어 결과를 저장하지 않았습니다. 다른 캐릭터로 다시 시도해 주세요.');
+        return;
+      }
+
       await createBattleRecord(record);
       onResult({ characterA, characterB, situation, result });
     } catch (battleError) {
       console.error('Battle failed.', battleError);
-      showError('배틀을 완료하지 못했습니다. 다시 시도해 주세요.');
+      showUnavailable('배틀을 완료하지 못했습니다. 다시 시도해 주세요.');
     } finally {
       activeBattleRequests.delete(myNumber);
       setIsLoading(false);
@@ -348,15 +437,17 @@ export function BattleStart({ initialStudentNumber = 1, onResult }: BattleStartP
             />
           </div>
 
-          <div className="battle-situation-row px-6 pb-6">
-            <RoulettePanel
-              title="배틀 상황"
-              value={situationTitle || '대기 중'}
-              items={situationReelItems}
-              isSpinning={loadingStep === 'situation'}
-              tone="emerald"
-            />
-          </div>
+          {loadingStep !== 'opponent' && (
+            <div className="battle-situation-row px-6 pb-6">
+              <RoulettePanel
+                title="배틀 상황"
+                value={situationTitle || '대기 중'}
+                items={situationReelItems}
+                isSpinning={loadingStep === 'situation'}
+                tone="emerald"
+              />
+            </div>
+          )}
 
           {loadingStep === 'story' && (
             <div className="battle-story-row px-6 pb-6">
