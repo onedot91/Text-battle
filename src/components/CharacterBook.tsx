@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Character } from '../types';
 import {
   deleteCharacter,
@@ -60,6 +60,14 @@ export function CharacterBook({ initialStudentNumber = 1, onHome }: CharacterBoo
   const [editing, setEditing] = useState<Character | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const editFormRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollEditFormIntoView = () => {
+    editFormRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
 
   const loadCharacters = useCallback(async () => {
     setError('');
@@ -82,6 +90,12 @@ export function CharacterBook({ initialStudentNumber = 1, onHome }: CharacterBoo
     void loadCharacters();
   }, [loadCharacters]);
 
+  useEffect(() => {
+    if (!editing) return;
+
+    scrollEditFormIntoView();
+  }, [editing]);
+
   const battleStatsByCharacterId = useMemo(
     () => buildBattleStatsByCharacterId(battleRecords),
     [battleRecords],
@@ -99,6 +113,12 @@ export function CharacterBook({ initialStudentNumber = 1, onHome }: CharacterBoo
     } catch {
       setError('대표 캐릭터를 정하지 못했습니다.');
     }
+  };
+
+  const handleEdit = (character: Character) => {
+    setError('');
+    setEditing(character);
+    window.requestAnimationFrame(scrollEditFormIntoView);
   };
 
   const handleDelete = async (character: Character) => {
@@ -130,13 +150,15 @@ export function CharacterBook({ initialStudentNumber = 1, onHome }: CharacterBoo
       <ErrorMessage message={error} />
       {isLoading && <LoadingMessage message="불러오는 중" />}
       {editing && (
-        <CharacterForm
-          editingCharacter={editing}
-          onSaved={() => {
-            setEditing(null);
-            void loadCharacters();
-          }}
-        />
+        <div ref={editFormRef}>
+          <CharacterForm
+            editingCharacter={editing}
+            onSaved={() => {
+              setEditing(null);
+              void loadCharacters();
+            }}
+          />
+        </div>
       )}
       <div>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -161,7 +183,7 @@ export function CharacterBook({ initialStudentNumber = 1, onHome }: CharacterBoo
                 character={character}
                 battleStats={battleStatsByCharacterId.get(character.id)}
                 onSetRepresentative={handleSetRepresentative}
-                onEdit={setEditing}
+                onEdit={handleEdit}
                 onDelete={handleDelete}
               />
             ) : (

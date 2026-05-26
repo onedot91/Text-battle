@@ -53,6 +53,7 @@ export function CharacterCard({ character, battleStats, onSetRepresentative, onE
         {onSetRepresentative && !character.is_representative && (
           <button
             className="rounded-lg bg-yellow-500 px-5 py-3 text-lg font-bold text-white hover:bg-yellow-600"
+            type="button"
             onClick={() => onSetRepresentative(character)}
           >
             대표로 정하기
@@ -61,6 +62,7 @@ export function CharacterCard({ character, battleStats, onSetRepresentative, onE
         {onEdit && (
           <button
             className="rounded-lg bg-emerald-600 px-5 py-3 text-lg font-bold text-white hover:bg-emerald-700"
+            type="button"
             onClick={() => onEdit(character)}
           >
             수정
@@ -69,6 +71,7 @@ export function CharacterCard({ character, battleStats, onSetRepresentative, onE
         {onDelete && (
           <button
             className="rounded-lg bg-red-600 px-5 py-3 text-lg font-bold text-white hover:bg-red-700"
+            type="button"
             onClick={() => onDelete(character)}
           >
             삭제

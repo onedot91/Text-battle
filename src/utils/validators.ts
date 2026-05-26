@@ -1,14 +1,19 @@
-const forbiddenWords = [
-  '죽인다',
-  '죽임',
-  '없앤다',
-  '폭파',
-  '살인',
-  '피',
-  '칼',
-  '총',
-  '때린다',
-  '공격해서 없애',
+const forbiddenPatterns = [
+  /죽인/,
+  /죽임/,
+  /죽여/,
+  /죽일/,
+  /살인/,
+  /폭파/,
+  /때린/,
+  /때려/,
+  /때릴/,
+  /공격해서없애/,
+  /(상대|상대방|친구|사람|남|적).{0,4}(없애|없앤|없앨)/,
+  /(없애|없앤|없앨).{0,4}(상대|상대방|친구|사람|남|적)/,
+  /칼로.{0,4}(찌르|찌른|찌를|베|벤|벨|공격|상처|위협)/,
+  /총(으로)?.{0,4}(쏘|쏜|쏠|공격|위협)/,
+  /피(를)?(흘|나|투성이|범벅)/,
 ];
 
 export const unfairPowerPhrases = [
@@ -57,7 +62,7 @@ function normalizeForValidation(value: string) {
 
 export function containsForbiddenWords(value: string) {
   const compactValue = normalizeForValidation(value);
-  return forbiddenWords.some((word) => compactValue.includes(normalizeForValidation(word)));
+  return forbiddenPatterns.some((pattern) => pattern.test(compactValue));
 }
 
 export function containsUnfairPowerWords(value: string) {
