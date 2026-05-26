@@ -102,7 +102,7 @@ export function TeacherDashboard({ refreshKey, onLoadingChange }: TeacherDashboa
   const handleDelete = async (character: Character) => {
     if (!window.confirm('캐릭터를 삭제할까요?')) return;
     try {
-      await deleteCharacter(character.id);
+      await deleteCharacter(character.id, { bypassDailyLimit: true });
       await loadData();
     } catch {
       setError('캐릭터를 삭제하지 못했습니다.');

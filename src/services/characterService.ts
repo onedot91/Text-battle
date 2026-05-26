@@ -207,27 +207,38 @@ export async function getRemainingDailyCharacterDeletions(studentNumber: number)
   return Math.max(0, DAILY_CHARACTER_DELETE_LIMIT_PER_STUDENT - todayDeleteCount);
 }
 
-export async function deleteCharacter(characterId: string) {
-  const character = await getCharacterById(characterId);
-  const todayDeleteCount = await getTodayCharacterDeletionCount(character.student_number);
+type DeleteCharacterOptions = {
+  bypassDailyLimit?: boolean;
+  recordDeletionLimit?: boolean;
+};
 
-  if (todayDeleteCount >= DAILY_CHARACTER_DELETE_LIMIT_PER_STUDENT) {
-    throw new Error('CHARACTER_DELETE_DAILY_LIMIT_REACHED');
+export async function deleteCharacter(characterId: string, options: DeleteCharacterOptions = {}) {
+  const character = await getCharacterById(characterId);
+  const shouldRecordDeletionLimit = options.recordDeletionLimit ?? !options.bypassDailyLimit;
+
+  if (!options.bypassDailyLimit) {
+    const todayDeleteCount = await getTodayCharacterDeletionCount(character.student_number);
+
+    if (todayDeleteCount >= DAILY_CHARACTER_DELETE_LIMIT_PER_STUDENT) {
+      throw new Error('CHARACTER_DELETE_DAILY_LIMIT_REACHED');
+    }
   }
 
   const { error } = await supabase.from('characters').delete().eq('id', characterId);
   if (error) throw error;
 
-  const logResult = await supabase.from('character_deletion_logs').insert({
-    student_number: character.student_number,
-    deleted_character_id: character.id,
-    character_name: character.name,
-  });
-  if (logResult.error) {
-    if (isMissingDeletionLogTable(logResult.error)) {
-      recordLocalCharacterDeletion(character.student_number);
-    } else {
-      throw logResult.error;
+  if (shouldRecordDeletionLimit) {
+    const logResult = await supabase.from('character_deletion_logs').insert({
+      student_number: character.student_number,
+      deleted_character_id: character.id,
+      character_name: character.name,
+    });
+    if (logResult.error) {
+      if (isMissingDeletionLogTable(logResult.error)) {
+        recordLocalCharacterDeletion(character.student_number);
+      } else {
+        throw logResult.error;
+      }
     }
   }
 
