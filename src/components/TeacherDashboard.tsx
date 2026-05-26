@@ -12,7 +12,7 @@ import { getFullParagraph } from '../utils/characterText';
 import { ErrorMessage } from './ErrorMessage';
 import { LoadingMessage } from './LoadingMessage';
 
-const STUDENT_NUMBERS = Array.from({ length: 23 }, (_, index) => index + 1);
+const STUDENT_NUMBERS = Array.from({ length: 24 }, (_, index) => index);
 
 type StudentSummary = {
   count: number;
@@ -145,7 +145,7 @@ export function TeacherDashboard({ refreshKey, onLoadingChange }: TeacherDashboa
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-end justify-between gap-3">
           <h2 className="text-2xl font-black text-slate-950">상태판</h2>
-          <p className="text-sm font-black text-slate-500">1-23</p>
+          <p className="text-sm font-black text-slate-500">0-23</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8">

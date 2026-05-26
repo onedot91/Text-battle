@@ -108,8 +108,8 @@ export function containsUnfairPowerWords(value: string) {
 
 export function validateStudentNumber(value: string | number) {
   const number = Number(value);
-  if (!Number.isInteger(number) || number < 1 || number > 23) {
-    return '학생 번호는 1부터 23 사이 숫자만 사용할 수 있어요.';
+  if (!Number.isInteger(number) || number < 0 || number > 23) {
+    return '학생 번호는 0부터 23 사이 숫자만 사용할 수 있어요.';
   }
   return '';
 }

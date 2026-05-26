@@ -237,7 +237,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult, onUnavailable 
       let index = 0;
       setOpponentReelItems(candidates.map((candidate) => candidate.name));
       setOpponentName(candidates[0]?.name || selectedCharacter.name);
-      setOpponentNumber(candidates[0]?.student_number || selectedCharacter.student_number);
+      setOpponentNumber(candidates[0]?.student_number ?? selectedCharacter.student_number);
 
       const intervalId = window.setInterval(() => {
         const candidate = candidates[index % candidates.length];
@@ -429,7 +429,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult, onUnavailable 
             />
             <RoulettePanel
               title="상대 캐릭터"
-              badge={opponentNumber ? `${opponentNumber}번` : undefined}
+              badge={opponentNumber !== null ? `${opponentNumber}번` : undefined}
               value={opponentName || '고르는 중'}
               items={opponentReelItems}
               isSpinning={loadingStep === 'opponent'}
