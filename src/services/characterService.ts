@@ -2,6 +2,21 @@ import { supabase } from '../lib/supabase';
 import type { Character, CharacterInput } from '../types';
 
 export const MAX_CHARACTERS_PER_STUDENT = 6;
+export const DAILY_CHARACTER_DELETE_LIMIT_PER_STUDENT = 1;
+const CHARACTER_DELETE_LOG_STORAGE_PREFIX = 'text-battle-character-delete-log';
+
+function getLocalDayRange(date = new Date()) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  return {
+    startIso: start.toISOString(),
+    endIso: end.toISOString(),
+  };
+}
 
 async function getCharacterById(characterId: string) {
   const { data, error } = await supabase.from('characters').select('*').eq('id', characterId).single();
@@ -20,6 +35,53 @@ function isMissingSubjectParticleColumn(error: unknown) {
 function withoutSubjectParticle(input: Partial<CharacterInput>) {
   const { subject_particle: _subjectParticle, ...rest } = input;
   return rest;
+}
+
+function isMissingDeletionLogTable(error: unknown) {
+  if (!error || typeof error !== 'object') return false;
+  const maybeError = error as { code?: string; message?: string; details?: string; hint?: string };
+  return (
+    maybeError.code === '42P01' ||
+    [maybeError.message, maybeError.details, maybeError.hint].some((value) =>
+      value?.includes('character_deletion_logs'),
+    )
+  );
+}
+
+function getLocalDeletionLogKey(studentNumber: number) {
+  return `${CHARACTER_DELETE_LOG_STORAGE_PREFIX}-${studentNumber}`;
+}
+
+function getLocalTodayDeletionCount(studentNumber: number) {
+  if (typeof window === 'undefined') return 0;
+
+  const { startIso, endIso } = getLocalDayRange();
+  const rawValue = window.localStorage.getItem(getLocalDeletionLogKey(studentNumber));
+  if (!rawValue) return 0;
+
+  try {
+    const createdAtValues = JSON.parse(rawValue) as string[];
+    return createdAtValues.filter((createdAt) => createdAt >= startIso && createdAt < endIso).length;
+  } catch {
+    return 0;
+  }
+}
+
+function recordLocalCharacterDeletion(studentNumber: number) {
+  if (typeof window === 'undefined') return;
+
+  const { startIso, endIso } = getLocalDayRange();
+  const rawValue = window.localStorage.getItem(getLocalDeletionLogKey(studentNumber));
+  let createdAtValues: string[] = [];
+
+  try {
+    createdAtValues = rawValue ? (JSON.parse(rawValue) as string[]) : [];
+  } catch {
+    createdAtValues = [];
+  }
+
+  const recentValues = createdAtValues.filter((createdAt) => createdAt >= startIso && createdAt < endIso);
+  window.localStorage.setItem(getLocalDeletionLogKey(studentNumber), JSON.stringify([...recentValues, new Date().toISOString()]));
 }
 
 export async function getCharactersByStudentNumber(studentNumber: number) {
@@ -124,11 +186,50 @@ export async function setRepresentativeCharacter(studentNumber: number, characte
   return data;
 }
 
+export async function getTodayCharacterDeletionCount(studentNumber: number) {
+  const { startIso, endIso } = getLocalDayRange();
+  const { count, error } = await supabase
+    .from('character_deletion_logs')
+    .select('id', { count: 'exact', head: true })
+    .eq('student_number', studentNumber)
+    .gte('created_at', startIso)
+    .lt('created_at', endIso);
+
+  if (error) {
+    if (isMissingDeletionLogTable(error)) return getLocalTodayDeletionCount(studentNumber);
+    throw error;
+  }
+  return Math.max(count ?? 0, getLocalTodayDeletionCount(studentNumber));
+}
+
+export async function getRemainingDailyCharacterDeletions(studentNumber: number) {
+  const todayDeleteCount = await getTodayCharacterDeletionCount(studentNumber);
+  return Math.max(0, DAILY_CHARACTER_DELETE_LIMIT_PER_STUDENT - todayDeleteCount);
+}
+
 export async function deleteCharacter(characterId: string) {
   const character = await getCharacterById(characterId);
+  const todayDeleteCount = await getTodayCharacterDeletionCount(character.student_number);
+
+  if (todayDeleteCount >= DAILY_CHARACTER_DELETE_LIMIT_PER_STUDENT) {
+    throw new Error('CHARACTER_DELETE_DAILY_LIMIT_REACHED');
+  }
 
   const { error } = await supabase.from('characters').delete().eq('id', characterId);
   if (error) throw error;
+
+  const logResult = await supabase.from('character_deletion_logs').insert({
+    student_number: character.student_number,
+    deleted_character_id: character.id,
+    character_name: character.name,
+  });
+  if (logResult.error) {
+    if (isMissingDeletionLogTable(logResult.error)) {
+      recordLocalCharacterDeletion(character.student_number);
+    } else {
+      throw logResult.error;
+    }
+  }
 
   if (character.is_representative) {
     const remaining = await getCharactersByStudentNumber(character.student_number);

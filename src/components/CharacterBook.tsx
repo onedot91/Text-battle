@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Character } from '../types';
 import {
+  DAILY_CHARACTER_DELETE_LIMIT_PER_STUDENT,
   deleteCharacter,
   getCharactersByStudentNumber,
+  getRemainingDailyCharacterDeletions,
   MAX_CHARACTERS_PER_STUDENT,
   setRepresentativeCharacter,
 } from '../services/characterService';
@@ -60,6 +62,7 @@ export function CharacterBook({ initialStudentNumber = 1, onHome }: CharacterBoo
   const [editing, setEditing] = useState<Character | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [remainingDailyDeletions, setRemainingDailyDeletions] = useState(DAILY_CHARACTER_DELETE_LIMIT_PER_STUDENT);
   const editFormRef = useRef<HTMLDivElement | null>(null);
 
   const scrollEditFormIntoView = () => {
@@ -73,12 +76,14 @@ export function CharacterBook({ initialStudentNumber = 1, onHome }: CharacterBoo
     setError('');
     setIsLoading(true);
     try {
-      const [nextCharacters, nextBattleRecords] = await Promise.all([
+      const [nextCharacters, nextBattleRecords, nextRemainingDailyDeletions] = await Promise.all([
         getCharactersByStudentNumber(initialStudentNumber),
         getBattleRecordsForStudentNumber(initialStudentNumber),
+        getRemainingDailyCharacterDeletions(initialStudentNumber),
       ]);
       setCharacters(nextCharacters);
       setBattleRecords(nextBattleRecords);
+      setRemainingDailyDeletions(nextRemainingDailyDeletions);
     } catch {
       setError('데이터를 불러오지 못했습니다.');
     } finally {
@@ -122,11 +127,21 @@ export function CharacterBook({ initialStudentNumber = 1, onHome }: CharacterBoo
   };
 
   const handleDelete = async (character: Character) => {
+    if (remainingDailyDeletions <= 0) {
+      setError('캐릭터 삭제는 하루에 한 번만 할 수 있어요.');
+      return;
+    }
+
     if (!window.confirm('이 캐릭터를 삭제할까요?')) return;
     try {
       await deleteCharacter(character.id);
       await loadCharacters();
-    } catch {
+    } catch (deleteError) {
+      if (deleteError instanceof Error && deleteError.message === 'CHARACTER_DELETE_DAILY_LIMIT_REACHED') {
+        setRemainingDailyDeletions(0);
+        setError('캐릭터 삭제는 하루에 한 번만 할 수 있어요.');
+        return;
+      }
       setError('캐릭터를 삭제하지 못했습니다.');
     }
   };
@@ -173,6 +188,13 @@ export function CharacterBook({ initialStudentNumber = 1, onHome }: CharacterBoo
               등록 한도 도달
             </span>
           )}
+          <span
+            className={`rounded-full px-3 py-1 text-sm font-black ${
+              remainingDailyDeletions > 0 ? 'bg-slate-100 text-slate-700' : 'bg-rose-100 text-rose-800'
+            }`}
+          >
+            삭제 오늘 {remainingDailyDeletions}/{DAILY_CHARACTER_DELETE_LIMIT_PER_STUDENT}회
+          </span>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
@@ -185,6 +207,7 @@ export function CharacterBook({ initialStudentNumber = 1, onHome }: CharacterBoo
                 onSetRepresentative={handleSetRepresentative}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                isDeleteDisabled={remainingDailyDeletions <= 0}
               />
             ) : (
               <div

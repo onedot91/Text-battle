@@ -15,9 +15,17 @@ type CharacterCardProps = {
   onSetRepresentative?: (character: Character) => void;
   onEdit?: (character: Character) => void;
   onDelete?: (character: Character) => void;
+  isDeleteDisabled?: boolean;
 };
 
-export function CharacterCard({ character, battleStats, onSetRepresentative, onEdit, onDelete }: CharacterCardProps) {
+export function CharacterCard({
+  character,
+  battleStats,
+  onSetRepresentative,
+  onEdit,
+  onDelete,
+  isDeleteDisabled = false,
+}: CharacterCardProps) {
   const totalBattles = (battleStats?.wins ?? 0) + (battleStats?.losses ?? 0);
   const remainingDailyBattles = battleStats?.remainingDailyBattles ?? DAILY_BATTLE_LIMIT_PER_CHARACTER;
 
@@ -70,8 +78,11 @@ export function CharacterCard({ character, battleStats, onSetRepresentative, onE
         )}
         {onDelete && (
           <button
-            className="rounded-lg bg-red-600 px-5 py-3 text-lg font-bold text-white hover:bg-red-700"
+            className={`rounded-lg px-5 py-3 text-lg font-bold text-white ${
+              isDeleteDisabled ? 'cursor-not-allowed bg-slate-400' : 'bg-red-600 hover:bg-red-700'
+            }`}
             type="button"
+            disabled={isDeleteDisabled}
             onClick={() => onDelete(character)}
           >
             삭제

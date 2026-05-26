@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import type { BattleRecord, Character, RewriteLog } from '../types';
+import type { BattleRecord, Character, CharacterDeletionLog, RewriteLog } from '../types';
 
 type Database = {
   public: {
@@ -32,6 +32,15 @@ type Database = {
           created_at?: string;
         };
         Update: Partial<Omit<RewriteLog, 'id' | 'created_at'>>;
+        Relationships: [];
+      };
+      character_deletion_logs: {
+        Row: CharacterDeletionLog;
+        Insert: Omit<CharacterDeletionLog, 'id' | 'created_at'> & {
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<Omit<CharacterDeletionLog, 'id' | 'created_at'>>;
         Relationships: [];
       };
     };

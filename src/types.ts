@@ -64,6 +64,16 @@ export type RewriteLog = {
 
 export type RewriteLogInput = Omit<RewriteLog, 'id' | 'created_at'>;
 
+export type CharacterDeletionLog = {
+  id: string;
+  student_number: number;
+  deleted_character_id: string;
+  character_name: string;
+  created_at: string;
+};
+
+export type CharacterDeletionLogInput = Omit<CharacterDeletionLog, 'id' | 'created_at'>;
+
 export type BattleResult = {
   story: string;
   winner: 'A' | 'B';

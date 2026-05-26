@@ -70,9 +70,21 @@ create index if not exists rewrite_logs_character_created_idx
 create index if not exists rewrite_logs_created_idx
   on public.rewrite_logs (created_at desc);
 
+create table if not exists public.character_deletion_logs (
+  id uuid primary key default gen_random_uuid(),
+  student_number integer not null,
+  deleted_character_id uuid not null,
+  character_name text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists character_deletion_logs_student_created_idx
+  on public.character_deletion_logs (student_number, created_at desc);
+
 alter table public.characters enable row level security;
 alter table public.battle_records enable row level security;
 alter table public.rewrite_logs enable row level security;
+alter table public.character_deletion_logs enable row level security;
 
 drop policy if exists "Public classroom access to characters" on public.characters;
 
@@ -94,6 +106,14 @@ drop policy if exists "Public classroom access to rewrite logs" on public.rewrit
 
 create policy "Public classroom access to rewrite logs"
   on public.rewrite_logs
+  for all
+  using (true)
+  with check (true);
+
+drop policy if exists "Public classroom access to character deletion logs" on public.character_deletion_logs;
+
+create policy "Public classroom access to character deletion logs"
+  on public.character_deletion_logs
   for all
   using (true)
   with check (true);
