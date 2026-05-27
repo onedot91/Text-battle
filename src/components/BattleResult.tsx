@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BattleResult as BattleResultType, Character, Situation } from '../types';
 import { playTypeSound, playWinnerSound } from '../utils/soundEffects';
 
@@ -17,13 +17,13 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
   const [isComplete, setIsComplete] = useState(false);
   const winnerSoundStoryRef = useRef('');
 
-  const revealWinner = () => {
+  const revealWinner = useCallback(() => {
     setIsComplete(true);
     if (winnerSoundStoryRef.current !== result.story) {
       winnerSoundStoryRef.current = result.story;
       playWinnerSound();
     }
-  };
+  }, [result.story]);
 
   useEffect(() => {
     const storyCharacters = Array.from(result.story);
@@ -50,7 +50,19 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
     }, TYPE_SPEED_MS);
 
     return () => window.clearInterval(timerId);
-  }, [result.story]);
+  }, [result.story, revealWinner]);
+
+  useEffect(() => {
+    if (isComplete) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isComplete]);
 
   return (
     <div className="space-y-6">
@@ -102,11 +114,12 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
 
       <div className="flex justify-end">
         <button
-          className="rounded-lg bg-slate-950 px-7 py-4 text-xl font-black text-white transition hover:bg-slate-800"
+          className="rounded-lg bg-slate-950 px-7 py-4 text-xl font-black text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
           type="button"
+          disabled={!isComplete}
           onClick={onHome}
         >
-          홈으로 가기
+          {isComplete ? '홈으로 가기' : '이야기를 다 보는 중'}
         </button>
       </div>
     </div>
