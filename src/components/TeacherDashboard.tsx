@@ -11,6 +11,7 @@ import { situations } from '../data/situations';
 import { getFullParagraph } from '../utils/characterText';
 import { ErrorMessage } from './ErrorMessage';
 import { LoadingMessage } from './LoadingMessage';
+import { CharacterForm } from './CharacterForm';
 
 const STUDENT_NUMBERS = Array.from({ length: 24 }, (_, index) => index);
 
@@ -44,6 +45,7 @@ export function TeacherDashboard({ refreshKey, onLoadingChange }: TeacherDashboa
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedStudentNumber, setSelectedStudentNumber] = useState<number | null>(null);
+  const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
 
   const loadData = async () => {
     setError('');
@@ -120,6 +122,12 @@ export function TeacherDashboard({ refreshKey, onLoadingChange }: TeacherDashboa
 
   const renderCharacterActions = (character: Character) => (
     <div className="flex shrink-0 flex-wrap gap-2 md:justify-end">
+      <button
+        className="rounded-lg bg-sky-700 px-4 py-2 font-black text-white hover:bg-sky-800"
+        onClick={() => setEditingCharacter(character)}
+      >
+        수정
+      </button>
       {!character.is_representative && (
         <button
           className="rounded-lg bg-amber-500 px-4 py-2 font-black text-white hover:bg-amber-600"
@@ -317,6 +325,36 @@ export function TeacherDashboard({ refreshKey, onLoadingChange }: TeacherDashboa
           </div>
         )}
       </section>
+
+      {editingCharacter && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/50 px-4 py-6">
+          <div className="mx-auto w-full max-w-6xl rounded-lg bg-slate-100 p-4 shadow-2xl sm:p-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white px-5 py-4 shadow-sm">
+              <div>
+                <p className="text-sm font-black text-slate-500">{editingCharacter.student_number}번</p>
+                <h2 className="text-3xl font-black text-slate-950">캐릭터 수정</h2>
+              </div>
+              <button
+                className="rounded-lg bg-slate-950 px-5 py-3 text-lg font-black text-white transition hover:bg-slate-800"
+                type="button"
+                onClick={() => setEditingCharacter(null)}
+              >
+                닫기
+              </button>
+            </div>
+            <CharacterForm
+              key={editingCharacter.id}
+              initialStudentNumber={editingCharacter.student_number}
+              editingCharacter={editingCharacter}
+              showTitle={false}
+              onSaved={() => {
+                setEditingCharacter(null);
+                void loadData();
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
