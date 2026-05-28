@@ -25,6 +25,8 @@ const STUDENT_NUMBER_STORAGE_KEY = 'text-battle-student-number';
 const MIN_STUDENT_NUMBER = 1;
 const MAX_STUDENT_NUMBER = 23;
 const HIDDEN_TEACHER_STUDENT_NUMBER = 0;
+const MORNING_ACTIVITY_START_HOUR = 8;
+const MORNING_ACTIVITY_END_HOUR = 9;
 
 const viewTitles: Record<View, string> = {
   home: '',
@@ -48,6 +50,45 @@ function getSavedStudentNumber() {
     : null;
 }
 
+function isMorningActivityTime(date: Date) {
+  const hour = date.getHours();
+  return hour >= MORNING_ACTIVITY_START_HOUR && hour < MORNING_ACTIVITY_END_HOUR;
+}
+
+function MorningActivityModal() {
+  return (
+    <div className="fixed inset-0 z-[100] grid place-items-center bg-black/70 px-5 py-6">
+      <div
+        className="w-full max-w-2xl overflow-hidden rounded-lg border-2 border-black bg-white shadow-2xl"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="morning-activity-title"
+        aria-describedby="morning-activity-description"
+      >
+        <img
+          className="block aspect-[2/1] w-full object-cover"
+          src="/morning-activity.png"
+          alt="상상도 못한 정체"
+        />
+        <div className="p-6 text-center sm:p-8">
+          <h2
+            id="morning-activity-title"
+            className="mt-2 text-3xl font-black leading-tight text-slate-950 sm:text-5xl"
+          >
+            아침활동 시간
+          </h2>
+          <p
+            id="morning-activity-description"
+            className="mt-4 text-xl font-bold leading-8 text-slate-800 sm:text-2xl"
+          >
+            8시부터 9시까지 사용할 수 없습니다.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [view, setView] = useState<View>('home');
   const [resultPayload, setResultPayload] = useState<ResultPayload | null>(null);
@@ -58,6 +99,9 @@ export default function App() {
   const [isResettingClassroom, setIsResettingClassroom] = useState(false);
   const [resetError, setResetError] = useState('');
   const [homeBattleNotice, setHomeBattleNotice] = useState('');
+  const [isBlockedByMorningActivity, setIsBlockedByMorningActivity] = useState(() =>
+    isMorningActivityTime(new Date()),
+  );
 
   const setStudentNumber = (nextStudentNumber: number) => {
     setStudentNumberState(nextStudentNumber);
@@ -112,6 +156,16 @@ export default function App() {
 
     window.addEventListener('keydown', handleTextInputKeyDown, true);
     return () => window.removeEventListener('keydown', handleTextInputKeyDown, true);
+  }, []);
+
+  useEffect(() => {
+    const updateMorningActivityBlock = () => {
+      setIsBlockedByMorningActivity(isMorningActivityTime(new Date()));
+    };
+
+    updateMorningActivityBlock();
+    const intervalId = window.setInterval(updateMorningActivityBlock, 30 * 1000);
+    return () => window.clearInterval(intervalId);
   }, []);
 
   const clearLocalBattleNotificationState = () => {
@@ -272,6 +326,7 @@ export default function App() {
           </div>
         </div>
       )}
+      {isBlockedByMorningActivity && <MorningActivityModal />}
     </Layout>
   );
 }
