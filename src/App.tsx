@@ -341,6 +341,7 @@ export default function App() {
       {view === 'result' && resultPayload && (
         <BattleResult
           {...resultPayload}
+          canSkipReveal={studentNumber === HIDDEN_TEACHER_STUDENT_NUMBER}
           onComplete={() => {
             if (studentNumber !== null) clearPendingBattleResult(studentNumber);
           }}

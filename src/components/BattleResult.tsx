@@ -9,28 +9,51 @@ type BattleResultProps = {
   result: BattleResultType;
   onHome: () => void;
   onComplete?: () => void;
+  canSkipReveal?: boolean;
 };
 
 const TYPE_SPEED_MS = 135;
 
-export function BattleResult({ characterA, characterB, situation, result, onHome, onComplete }: BattleResultProps) {
+export function BattleResult({
+  characterA,
+  characterB,
+  situation,
+  result,
+  onHome,
+  onComplete,
+  canSkipReveal = false,
+}: BattleResultProps) {
   const [visibleStory, setVisibleStory] = useState('');
   const [isComplete, setIsComplete] = useState(false);
   const typingCursorRef = useRef<HTMLSpanElement | null>(null);
+  const typingTimerRef = useRef<number | null>(null);
   const winnerSoundStoryRef = useRef('');
 
+  const clearTypingTimer = useCallback(() => {
+    if (typingTimerRef.current === null) return;
+    window.clearInterval(typingTimerRef.current);
+    typingTimerRef.current = null;
+  }, []);
+
   const revealWinner = useCallback(() => {
+    clearTypingTimer();
     setIsComplete(true);
     onComplete?.();
     if (winnerSoundStoryRef.current !== result.story) {
       winnerSoundStoryRef.current = result.story;
       playWinnerSound();
     }
-  }, [onComplete, result.story]);
+  }, [clearTypingTimer, onComplete, result.story]);
+
+  const skipReveal = () => {
+    setVisibleStory(result.story);
+    revealWinner();
+  };
 
   useEffect(() => {
     const storyCharacters = Array.from(result.story);
 
+    clearTypingTimer();
     setVisibleStory('');
     setIsComplete(false);
 
@@ -41,19 +64,18 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
     }
 
     let index = 0;
-    const timerId = window.setInterval(() => {
+    typingTimerRef.current = window.setInterval(() => {
       index += 1;
       playTypeSound();
       setVisibleStory(storyCharacters.slice(0, index).join(''));
 
       if (index >= storyCharacters.length) {
-        window.clearInterval(timerId);
         revealWinner();
       }
     }, TYPE_SPEED_MS);
 
-    return () => window.clearInterval(timerId);
-  }, [result.story, revealWinner]);
+    return clearTypingTimer;
+  }, [clearTypingTimer, result.story, revealWinner]);
 
   useEffect(() => {
     if (isComplete) return;
@@ -140,6 +162,17 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
       <section
         className={`result-story-section ${isComplete ? 'is-complete' : 'is-typing'} flex flex-col rounded-lg border-4 border-yellow-200 bg-yellow-50 px-7 py-8 shadow-sm sm:px-12 sm:py-10`}
       >
+        {canSkipReveal && !isComplete && (
+          <div className="mb-5 flex justify-end">
+            <button
+              className="rounded-lg bg-slate-950 px-5 py-3 text-lg font-black text-white transition hover:bg-slate-800"
+              type="button"
+              onClick={skipReveal}
+            >
+              결과 바로 보기
+            </button>
+          </div>
+        )}
         <p className="story-copy max-w-[64em] whitespace-pre-line break-keep text-xl font-semibold leading-[2.05] text-slate-950 sm:text-[1.55rem] sm:leading-[2]">
           {visibleStory}
           {!isComplete && (

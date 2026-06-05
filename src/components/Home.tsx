@@ -12,6 +12,8 @@ import { getBestCurrentWinStreak, type CharacterWinStreak } from '../utils/battl
 import { getUnreadIncomingBattleRecords } from '../utils/battleNotifications';
 import { playChargeSound, playErrorSound, playStartSound } from '../utils/soundEffects';
 
+const TEACHER_STUDENT_NUMBER = 0;
+
 type HomeProps = {
   studentNumber: number;
   canOpenTeacher: boolean;
@@ -29,6 +31,7 @@ export function Home({ studentNumber, canOpenTeacher, initialBattleNotice = '', 
   const [isBattleReady, setIsBattleReady] = useState(false);
   const [battleNotice, setBattleNotice] = useState('');
   const [isCheckingBattle, setIsCheckingBattle] = useState(false);
+  const ignoresBattleLimit = studentNumber === TEACHER_STUDENT_NUMBER;
 
   const getIncomingTargetName = (records: StudentBattleRecord[], fallbackCharacter: Character | null) => {
     const targetNames = Array.from(
@@ -84,14 +87,16 @@ export function Home({ studentNumber, canOpenTeacher, initialBattleNotice = '', 
         return;
       }
 
-      const todayBattleCountByCharacterId = await getTodayBattleCountByCharacterId([latestRepresentative.id]);
-      const remainingBattles = getRemainingDailyBattlesFromCount(
-        todayBattleCountByCharacterId.get(latestRepresentative.id) ?? 0,
-      );
+      if (!ignoresBattleLimit) {
+        const todayBattleCountByCharacterId = await getTodayBattleCountByCharacterId([latestRepresentative.id]);
+        const remainingBattles = getRemainingDailyBattlesFromCount(
+          todayBattleCountByCharacterId.get(latestRepresentative.id) ?? 0,
+        );
 
-      if (remainingBattles <= 0) {
-        showBattleNotice(`오늘 이 캐릭터의 배틀 횟수 ${DAILY_BATTLE_LIMIT_PER_CHARACTER}회를 모두 사용했습니다.`);
-        return;
+        if (remainingBattles <= 0) {
+          showBattleNotice(`오늘 이 캐릭터의 배틀 횟수 ${DAILY_BATTLE_LIMIT_PER_CHARACTER}회를 모두 사용했습니다.`);
+          return;
+        }
       }
 
       playStartSound();

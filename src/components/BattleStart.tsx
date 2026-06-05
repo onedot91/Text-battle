@@ -21,6 +21,7 @@ import {
 import { ErrorMessage } from './ErrorMessage';
 
 const activeBattleRequests = new Set<number>();
+const TEACHER_STUDENT_NUMBER = 0;
 const opponentRouletteDurationMs = 3200;
 const situationRouletteDurationMs = 3600;
 const rouletteTickMs = 90;
@@ -91,8 +92,8 @@ type RoulettePanelStyle = CSSProperties & {
   '--roulette-settle-y'?: string;
 };
 
-const reelStepPx = 48;
-const reelCenterOffsetPx = 68;
+const reelStepPx = 56;
+const reelCenterOffsetPx = 52;
 
 function getReelItems(items: string[], value: string, isSpinning: boolean) {
   const fallbackItems = items.length > 0 ? items : [value || '준비 중'];
@@ -216,6 +217,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult, onUnavailable 
   const [storyMessageIndex, setStoryMessageIndex] = useState(0);
   const situationReelItems = situations.map((situation) => situation.title);
   const myNumber = initialStudentNumber;
+  const ignoresBattleLimit = myNumber === TEACHER_STUDENT_NUMBER;
 
   const showError = (message: string) => {
     playErrorSound();
@@ -318,16 +320,18 @@ export function BattleStart({ initialStudentNumber = 1, onResult, onUnavailable 
         return;
       }
 
-      const todayBattleCountByCharacterId = await getTodayBattleCountByCharacterId([
-        characterA.id,
-      ]);
-      const myRemainingBattles = getRemainingDailyBattlesFromCount(
-        todayBattleCountByCharacterId.get(characterA.id) ?? 0,
-      );
+      if (!ignoresBattleLimit) {
+        const todayBattleCountByCharacterId = await getTodayBattleCountByCharacterId([
+          characterA.id,
+        ]);
+        const myRemainingBattles = getRemainingDailyBattlesFromCount(
+          todayBattleCountByCharacterId.get(characterA.id) ?? 0,
+        );
 
-      if (myRemainingBattles <= 0) {
-        showUnavailable(`오늘 이 캐릭터의 배틀 횟수 ${DAILY_BATTLE_LIMIT_PER_CHARACTER}회를 모두 사용했습니다.`);
-        return;
+        if (myRemainingBattles <= 0) {
+          showUnavailable(`오늘 이 캐릭터의 배틀 횟수 ${DAILY_BATTLE_LIMIT_PER_CHARACTER}회를 모두 사용했습니다.`);
+          return;
+        }
       }
 
       setMyCharacter(characterA);
@@ -363,9 +367,11 @@ export function BattleStart({ initialStudentNumber = 1, onResult, onUnavailable 
         rewrite_tip: null,
       };
 
-      const latestBattleCountByCharacterId = await getTodayBattleCountByCharacterId([characterA.id]);
-      const canSaveBattle =
-        getRemainingDailyBattlesFromCount(latestBattleCountByCharacterId.get(characterA.id) ?? 0) > 0;
+      const canSaveBattle = ignoresBattleLimit || (
+        getRemainingDailyBattlesFromCount(
+          (await getTodayBattleCountByCharacterId([characterA.id])).get(characterA.id) ?? 0,
+        ) > 0
+      );
 
       if (!canSaveBattle) {
         showUnavailable('배틀 횟수가 모두 사용되어 결과를 저장하지 않았습니다. 다른 캐릭터로 다시 시도해 주세요.');
@@ -423,7 +429,7 @@ export function BattleStart({ initialStudentNumber = 1, onResult, onUnavailable 
             </div>
           </div>
 
-          <div className="battle-roulette-grid grid gap-5 p-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+          <div className="battle-versus-stage battle-roulette-grid grid gap-5 p-6 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
             <RoulettePanel
               title="내 캐릭터"
               badge={myCharacter ? `${myCharacter.student_number}번` : undefined}
@@ -433,6 +439,11 @@ export function BattleStart({ initialStudentNumber = 1, onResult, onUnavailable 
               singleChoice
               tone="sky"
             />
+            <div className="battle-vs-divider" aria-hidden="true">
+              <span className="battle-vs-line battle-vs-line-top" />
+              <span className="battle-vs-badge">VS</span>
+              <span className="battle-vs-line battle-vs-line-bottom" />
+            </div>
             <RoulettePanel
               title="상대 캐릭터"
               badge={opponentNumber !== null ? `${opponentNumber}번` : undefined}
