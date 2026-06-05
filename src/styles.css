@@ -220,14 +220,15 @@ textarea:focus-visible {
     min-height: 100svh;
     display: grid;
     align-items: center;
-    padding-top: clamp(10px, 2vh, 24px) !important;
-    padding-bottom: clamp(10px, 2vh, 24px) !important;
+    padding-top: clamp(8px, 1.4vh, 18px) !important;
+    padding-bottom: clamp(8px, 1.4vh, 18px) !important;
   }
 
   .home-shell {
     width: 100%;
     display: grid;
-    gap: clamp(12px, 1.8vh, 18px);
+    gap: clamp(12px, 1.7vh, 18px);
+    align-items: center;
   }
 
   .home-intro {
@@ -236,7 +237,7 @@ textarea:focus-visible {
 
   .home-board {
     width: 100%;
-    padding: clamp(14px, 1.6vw, 20px) !important;
+    padding: clamp(12px, 1.35vw, 18px) !important;
   }
 
   .home-command-grid {
@@ -248,7 +249,7 @@ textarea:focus-visible {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-height: 112px;
+    min-height: 100px;
   }
 
   .initial-number-panel {
@@ -269,10 +270,10 @@ textarea:focus-visible {
   }
 
   .home-board .matchup-card {
-    min-height: 112px;
+    min-height: 100px;
     justify-content: center;
     gap: 10px;
-    padding: clamp(16px, 1.5vw, 20px) !important;
+    padding: clamp(14px, 1.35vw, 18px) !important;
   }
 
   .matchup-name {
@@ -286,7 +287,7 @@ textarea:focus-visible {
   }
 
   .home-nav-grid {
-    margin-top: clamp(12px, 1.6vw, 18px) !important;
+    margin-top: clamp(10px, 1.3vw, 14px) !important;
   }
 
   section,
@@ -464,7 +465,7 @@ textarea:focus-visible {
   }
 
   .battle-start-screen {
-    min-height: calc(100svh - clamp(16px, 2.4vh, 28px));
+    min-height: calc(100svh - clamp(12px, 2vh, 22px));
     display: grid;
     align-items: center;
   }
@@ -483,7 +484,7 @@ textarea:focus-visible {
 
   .battle-loading-header {
     background: #1f1d3d !important;
-    padding: clamp(12px, 1.45vw, 18px) clamp(22px, 3vw, 40px) !important;
+    padding: clamp(10px, 1.2vw, 16px) clamp(20px, 2.6vw, 36px) !important;
   }
 
   .battle-loading-header p {
@@ -498,19 +499,19 @@ textarea:focus-visible {
   }
 
   .battle-roulette-grid {
-    gap: clamp(12px, 1.45vw, 18px) !important;
-    padding: clamp(16px, 2vw, 26px) clamp(20px, 2.7vw, 38px) clamp(12px, 1.5vw, 18px) !important;
+    gap: clamp(10px, 1.25vw, 16px) !important;
+    padding: clamp(12px, 1.6vw, 22px) clamp(18px, 2.4vw, 34px) clamp(10px, 1.25vw, 16px) !important;
   }
 
   .battle-situation-row,
   .battle-story-row {
-    padding-inline: clamp(20px, 2.7vw, 38px) !important;
-    padding-bottom: clamp(12px, 1.7vw, 22px) !important;
+    padding-inline: clamp(18px, 2.4vw, 34px) !important;
+    padding-bottom: clamp(10px, 1.35vw, 18px) !important;
   }
 
   .battle-roulette-panel {
     --roulette-note: #dceeb1;
-    --reel-window-h: 196px;
+    --reel-window-h: 176px;
     --reel-item-h: 40px;
     --reel-item-gap: 8px;
     --reel-step: 48px;
@@ -520,7 +521,7 @@ textarea:focus-visible {
     isolation: isolate;
     border: 1px solid #000000 !important;
     background: #ffffff !important;
-    padding: clamp(14px, 1.45vw, 18px) !important;
+    padding: clamp(12px, 1.25vw, 16px) !important;
     box-shadow: none !important;
   }
 
@@ -909,6 +910,113 @@ textarea:focus-visible {
     box-shadow:
       0 0 0 6px #f3c9b6,
       inset 0 0 0 2px #000000 !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 820px) {
+  .home-shell {
+    gap: clamp(8px, 1.1vh, 12px);
+  }
+
+  .home-intro img {
+    height: clamp(250px, 43svh, 330px) !important;
+  }
+
+  .home-command-grid {
+    grid-template-columns: minmax(142px, 0.62fr) minmax(0, 4.38fr) !important;
+    gap: clamp(10px, 1.2vw, 14px) !important;
+  }
+
+  .home-number-card,
+  .home-board .matchup-card {
+    min-height: 86px;
+    padding: 12px !important;
+  }
+
+  .home-number-card p,
+  .matchup-card p:first-child {
+    font-size: 0.95rem !important;
+  }
+
+  .home-number-card > div {
+    margin-top: 8px !important;
+  }
+
+  .home-number-card [class*="h-20"] {
+    height: 58px !important;
+    font-size: 2.35rem !important;
+  }
+
+  .home-number-card [class*="text-xl"] {
+    font-size: 1rem !important;
+  }
+
+  .matchup-name {
+    font-size: clamp(1.85rem, 2.55vw, 2.75rem) !important;
+  }
+
+  .versus-badge {
+    width: 58px;
+    height: 58px;
+    border-width: 5px !important;
+    font-size: 1.05rem !important;
+  }
+
+  .versus-badge-ready {
+    width: clamp(104px, 8vw, 130px) !important;
+    font-size: 1rem !important;
+  }
+
+  .home-nav-grid {
+    gap: 10px !important;
+    margin-top: 10px !important;
+  }
+
+  .home-nav-grid button {
+    min-height: 48px;
+    padding: 10px 16px !important;
+    font-size: clamp(1rem, 1.2vw, 1.18rem) !important;
+  }
+
+  .home-board > button,
+  .home-board > div:not(.home-command-grid, .home-nav-grid) {
+    margin-top: 10px !important;
+  }
+
+  .home-alert-button,
+  .home-board button[class*="border-amber-"] {
+    padding: 10px 16px !important;
+  }
+
+  .home-alert-button span:last-child,
+  .home-board button[class*="border-amber-"] span:last-child,
+  .home-board > div[class*="text-lg"] {
+    font-size: 1rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .battle-start-screen {
+    min-height: calc(100svh - 18px);
+  }
+
+  .battle-loading-header p {
+    font-size: clamp(1.45rem, 2vw, 2.1rem) !important;
+  }
+
+  .battle-roulette-panel {
+    --reel-window-h: 150px;
+  }
+
+  .battle-roulette-panel p {
+    font-size: clamp(1rem, 1.15vw, 1.32rem) !important;
+  }
+
+  .battle-reel-item {
+    font-size: clamp(1rem, 1.2vw, 1.35rem) !important;
+  }
+
+  .battle-story-row .story-loader p + p {
+    font-size: clamp(1.25rem, 1.55vw, 1.7rem) !important;
   }
 }
 

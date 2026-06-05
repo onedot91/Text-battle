@@ -40,6 +40,7 @@ const storyLoadingMessages = [
   '승리 장면을 확인하는 중',
   '마무리 표현을 고르는 중',
 ];
+const fallbackBattleNotice = 'AI 응답이 없어 임시 결과를 만들었어요.';
 
 type LoadingStep = 'opponent' | 'situation' | 'story';
 
@@ -339,11 +340,10 @@ export function BattleStart({ initialStudentNumber = 1, onResult, onUnavailable 
       try {
         result = await generateBattleWithGemini(characterA, characterB, situation);
       } catch (geminiError) {
-        const message = geminiError instanceof Error ? geminiError.message : '알 수 없는 오류';
         console.error('Gemini battle generation failed.', geminiError);
         result = generateFallbackBattle(characterA, characterB, situation);
-        result.fallbackReason = message;
-        setNotice(message);
+        result.fallbackReason = fallbackBattleNotice;
+        setNotice(fallbackBattleNotice);
       }
 
       const record: BattleRecordInput = {
