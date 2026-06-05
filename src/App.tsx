@@ -117,7 +117,7 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.altKey && event.key === 'Enter') {
+      if ((event.ctrlKey || event.metaKey) && event.altKey && event.key === 'Enter') {
         event.preventDefault();
         resetStudentNumber();
       }
