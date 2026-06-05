@@ -8,22 +8,25 @@ type BattleResultProps = {
   situation: Situation;
   result: BattleResultType;
   onHome: () => void;
+  onComplete?: () => void;
 };
 
 const TYPE_SPEED_MS = 95;
 
-export function BattleResult({ characterA, characterB, situation, result, onHome }: BattleResultProps) {
+export function BattleResult({ characterA, characterB, situation, result, onHome, onComplete }: BattleResultProps) {
   const [visibleStory, setVisibleStory] = useState('');
   const [isComplete, setIsComplete] = useState(false);
+  const typingCursorRef = useRef<HTMLSpanElement | null>(null);
   const winnerSoundStoryRef = useRef('');
 
   const revealWinner = useCallback(() => {
     setIsComplete(true);
+    onComplete?.();
     if (winnerSoundStoryRef.current !== result.story) {
       winnerSoundStoryRef.current = result.story;
       playWinnerSound();
     }
-  }, [result.story]);
+  }, [onComplete, result.story]);
 
   useEffect(() => {
     const storyCharacters = Array.from(result.story);
@@ -51,6 +54,44 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
 
     return () => window.clearInterval(timerId);
   }, [result.story, revealWinner]);
+
+  useEffect(() => {
+    if (isComplete) return;
+
+    if (!visibleStory) return;
+
+    const animationFrameId = window.requestAnimationFrame(() => {
+      typingCursorRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest',
+      });
+    });
+
+    return () => window.cancelAnimationFrame(animationFrameId);
+  }, [visibleStory, isComplete]);
+
+  useEffect(() => {
+    if (isComplete) return;
+
+    const preventScroll = (event: Event) => {
+      event.preventDefault();
+    };
+    const preventScrollKeys = (event: KeyboardEvent) => {
+      const scrollKeys = new Set(['ArrowDown', 'ArrowUp', 'End', 'Home', 'PageDown', 'PageUp', ' ']);
+      if (scrollKeys.has(event.key)) event.preventDefault();
+    };
+
+    window.addEventListener('wheel', preventScroll, { capture: true, passive: false });
+    window.addEventListener('touchmove', preventScroll, { capture: true, passive: false });
+    window.addEventListener('keydown', preventScrollKeys, { capture: true });
+
+    return () => {
+      window.removeEventListener('wheel', preventScroll, { capture: true });
+      window.removeEventListener('touchmove', preventScroll, { capture: true });
+      window.removeEventListener('keydown', preventScrollKeys, { capture: true });
+    };
+  }, [isComplete]);
 
   useEffect(() => {
     if (isComplete) return;
@@ -96,10 +137,12 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
         <p className="text-2xl font-black leading-8 text-slate-950">{situation.title}</p>
       </section>
 
-      <section className="result-story-section flex min-h-[500px] flex-col justify-between rounded-lg border-4 border-yellow-200 bg-yellow-50 px-7 py-8 shadow-sm sm:min-h-[560px] sm:px-12 sm:py-10">
+      <section className="result-story-section flex flex-col rounded-lg border-4 border-yellow-200 bg-yellow-50 px-7 py-8 shadow-sm sm:px-12 sm:py-10">
         <p className="story-copy max-w-[64em] whitespace-pre-line break-keep text-xl font-semibold leading-[2.05] text-slate-950 sm:text-[1.55rem] sm:leading-[2]">
           {visibleStory}
-          {!isComplete && <span className="ml-1 inline-block h-6 w-1 translate-y-1 animate-pulse bg-yellow-900" />}
+          {!isComplete && (
+            <span ref={typingCursorRef} className="ml-1 inline-block h-6 w-1 translate-y-1 animate-pulse bg-yellow-900" />
+          )}
         </p>
 
         {isComplete && (
@@ -112,16 +155,17 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
         )}
       </section>
 
-      <div className="flex justify-end">
-        <button
-          className="rounded-lg bg-slate-950 px-7 py-4 text-xl font-black text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
-          type="button"
-          disabled={!isComplete}
-          onClick={onHome}
-        >
-          {isComplete ? '홈으로 가기' : '이야기를 다 보는 중'}
-        </button>
-      </div>
+      {isComplete && (
+        <div className="flex justify-end">
+          <button
+            className="rounded-lg bg-slate-950 px-7 py-4 text-xl font-black text-white transition hover:bg-slate-800"
+            type="button"
+            onClick={onHome}
+          >
+            홈으로 가기
+          </button>
+        </div>
+      )}
     </div>
   );
 }

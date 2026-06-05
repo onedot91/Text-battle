@@ -319,6 +319,7 @@ textarea:focus-visible {
   }
 
   button[class*="bg-sky-"],
+  button[class*="bg-slate-950"],
   button[class*="bg-rose-"],
   button[class*="bg-emerald-"],
   button[class*="bg-red-"],

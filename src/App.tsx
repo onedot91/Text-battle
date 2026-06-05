@@ -22,6 +22,7 @@ type ResultPayload = {
 };
 
 const STUDENT_NUMBER_STORAGE_KEY = 'text-battle-student-number';
+const PENDING_BATTLE_RESULT_STORAGE_PREFIX = 'text-battle-pending-result';
 const MIN_STUDENT_NUMBER = 1;
 const MAX_STUDENT_NUMBER = 23;
 const HIDDEN_TEACHER_STUDENT_NUMBER = 0;
@@ -48,6 +49,55 @@ function getSavedStudentNumber() {
       (savedNumber >= MIN_STUDENT_NUMBER && savedNumber <= MAX_STUDENT_NUMBER))
     ? savedNumber
     : null;
+}
+
+function getPendingBattleResultStorageKey(studentNumber: number) {
+  return `${PENDING_BATTLE_RESULT_STORAGE_PREFIX}-${studentNumber}`;
+}
+
+function isRecordObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object';
+}
+
+function isPendingBattleResultPayload(value: unknown): value is ResultPayload {
+  if (!isRecordObject(value)) return false;
+  const { characterA, characterB, situation, result } = value;
+  if (!isRecordObject(characterA) || !isRecordObject(characterB)) return false;
+  if (!isRecordObject(situation) || !isRecordObject(result)) return false;
+
+  return (
+    typeof characterA.id === 'string' &&
+    typeof characterA.student_number === 'number' &&
+    typeof characterB.id === 'string' &&
+    typeof characterB.student_number === 'number' &&
+    typeof situation.id === 'string' &&
+    typeof situation.title === 'string' &&
+    typeof situation.text === 'string' &&
+    typeof result.story === 'string' &&
+    typeof result.winnerCharacterId === 'string' &&
+    typeof result.winnerName === 'string' &&
+    (result.winner === 'A' || result.winner === 'B')
+  );
+}
+
+function readPendingBattleResult(studentNumber: number) {
+  const rawValue = window.localStorage.getItem(getPendingBattleResultStorageKey(studentNumber));
+  if (!rawValue) return null;
+
+  try {
+    const parsedValue = JSON.parse(rawValue);
+    return isPendingBattleResultPayload(parsedValue) ? parsedValue : null;
+  } catch {
+    return null;
+  }
+}
+
+function savePendingBattleResult(studentNumber: number, payload: ResultPayload) {
+  window.localStorage.setItem(getPendingBattleResultStorageKey(studentNumber), JSON.stringify(payload));
+}
+
+function clearPendingBattleResult(studentNumber: number) {
+  window.localStorage.removeItem(getPendingBattleResultStorageKey(studentNumber));
 }
 
 function isMorningActivityTime(date: Date) {
@@ -90,9 +140,12 @@ function MorningActivityModal() {
 }
 
 export default function App() {
-  const [view, setView] = useState<View>('home');
-  const [resultPayload, setResultPayload] = useState<ResultPayload | null>(null);
   const [studentNumber, setStudentNumberState] = useState(getSavedStudentNumber);
+  const [resultPayload, setResultPayload] = useState<ResultPayload | null>(() => {
+    const savedStudentNumber = getSavedStudentNumber();
+    return savedStudentNumber === null ? null : readPendingBattleResult(savedStudentNumber);
+  });
+  const [view, setView] = useState<View>(() => (resultPayload ? 'result' : 'home'));
   const [teacherRefreshKey, setTeacherRefreshKey] = useState(0);
   const [isTeacherLoading, setIsTeacherLoading] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -106,6 +159,11 @@ export default function App() {
   const setStudentNumber = (nextStudentNumber: number) => {
     setStudentNumberState(nextStudentNumber);
     window.localStorage.setItem(STUDENT_NUMBER_STORAGE_KEY, String(nextStudentNumber));
+    const pendingResult = readPendingBattleResult(nextStudentNumber);
+    if (pendingResult) {
+      setResultPayload(pendingResult);
+      setView('result');
+    }
   };
 
   const resetStudentNumber = () => {
@@ -114,6 +172,16 @@ export default function App() {
     setResultPayload(null);
     setView('home');
   };
+
+  useEffect(() => {
+    if (studentNumber === null || view === 'result') return;
+
+    const pendingResult = readPendingBattleResult(studentNumber);
+    if (!pendingResult) return;
+
+    setResultPayload(pendingResult);
+    setView('result');
+  }, [studentNumber, view]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -234,6 +302,7 @@ export default function App() {
         <BattleStart
           initialStudentNumber={studentNumber}
           onResult={(payload) => {
+            savePendingBattleResult(studentNumber, payload);
             setResultPayload(payload);
             setView('result');
           }}
@@ -246,6 +315,9 @@ export default function App() {
       {view === 'result' && resultPayload && (
         <BattleResult
           {...resultPayload}
+          onComplete={() => {
+            if (studentNumber !== null) clearPendingBattleResult(studentNumber);
+          }}
           onHome={() => setView('home')}
         />
       )}

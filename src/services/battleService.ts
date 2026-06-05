@@ -8,7 +8,7 @@ const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 const geminiModel = 'gemini-2.5-flash';
 const geminiTimeoutMs = 35000;
 const shouldUseGeminiProxy = import.meta.env.PROD;
-export const DAILY_BATTLE_LIMIT_PER_CHARACTER = 2;
+export const DAILY_BATTLE_LIMIT_PER_CHARACTER = 1;
 
 function getLocalDayRange(date = new Date()) {
   const start = new Date(date);
