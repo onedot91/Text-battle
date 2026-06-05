@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Character } from '../types';
 import { getBattleRecordsForStudentNumber, type StudentBattleRecord } from '../services/battleService';
+import { getDataLoadErrorMessage } from '../services/serviceErrors';
 import { ErrorMessage } from './ErrorMessage';
 import { LoadingMessage } from './LoadingMessage';
 import { situations } from '../data/situations';
@@ -71,7 +72,7 @@ export function BattleHistory({ studentNumber, onHome }: BattleHistoryProps) {
     setError('');
     setIsLoading(true);
 
-    getBattleRecordsForStudentNumber(studentNumber)
+    getBattleRecordsForStudentNumber(studentNumber, { includeStory: true, limit: 30 })
       .then((nextRecords) => {
         if (!isMounted) return;
         const unreadRecords = getUnreadIncomingBattleRecords(studentNumber, nextRecords);
@@ -79,8 +80,8 @@ export function BattleHistory({ studentNumber, onHome }: BattleHistoryProps) {
         setUnreadIncomingRecordIds(new Set(unreadRecords.map((record) => record.id)));
         markIncomingBattleRecordsSeen(studentNumber, nextRecords);
       })
-      .catch(() => {
-        if (isMounted) setError('기록을 불러오지 못했습니다.');
+      .catch((loadError) => {
+        if (isMounted) setError(getDataLoadErrorMessage(loadError));
       })
       .finally(() => {
         if (isMounted) setIsLoading(false);
@@ -181,7 +182,7 @@ export function BattleHistory({ studentNumber, onHome }: BattleHistoryProps) {
 
               <div className="px-5 pb-5">
                 <p className="story-copy whitespace-pre-line break-keep rounded-lg bg-white p-4 text-lg font-semibold leading-9 text-slate-800 ring-1 ring-slate-200">
-                  {record.story}
+                  {record.story || '이야기 본문을 불러오지 못했습니다.'}
                 </p>
               </div>
             </article>

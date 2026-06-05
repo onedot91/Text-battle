@@ -13,6 +13,7 @@ import {
   getRemainingDailyBattlesForCharacter,
   type StudentBattleRecord,
 } from '../services/battleService';
+import { getDataLoadErrorMessage } from '../services/serviceErrors';
 import { getCurrentWinStreakForCharacter } from '../utils/battleStreaks';
 import { CharacterCard, type CharacterBattleStats } from './CharacterCard';
 import { CharacterForm } from './CharacterForm';
@@ -78,14 +79,14 @@ export function CharacterBook({ initialStudentNumber = 1, onHome }: CharacterBoo
     try {
       const [nextCharacters, nextBattleRecords, nextRemainingDailyDeletions] = await Promise.all([
         getCharactersByStudentNumber(initialStudentNumber),
-        getBattleRecordsForStudentNumber(initialStudentNumber),
+        getBattleRecordsForStudentNumber(initialStudentNumber, { includeStory: false, limit: 200 }),
         getRemainingDailyCharacterDeletions(initialStudentNumber),
       ]);
       setCharacters(nextCharacters);
       setBattleRecords(nextBattleRecords);
       setRemainingDailyDeletions(nextRemainingDailyDeletions);
-    } catch {
-      setError('데이터를 불러오지 못했습니다.');
+    } catch (loadError) {
+      setError(getDataLoadErrorMessage(loadError));
     } finally {
       setIsLoading(false);
     }

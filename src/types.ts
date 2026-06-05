@@ -52,18 +52,6 @@ export type BattleRecord = {
 
 export type BattleRecordInput = Omit<BattleRecord, 'id' | 'created_at'>;
 
-export type RewriteLog = {
-  id: string;
-  character_id: string;
-  student_number: number;
-  field_name: CharacterFieldName;
-  before_text: string;
-  after_text: string;
-  created_at: string;
-};
-
-export type RewriteLogInput = Omit<RewriteLog, 'id' | 'created_at'>;
-
 export type CharacterDeletionLog = {
   id: string;
   student_number: number;

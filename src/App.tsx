@@ -298,7 +298,7 @@ export default function App() {
               정말 전면 초기화할까요?
             </h2>
             <p id="reset-all-description" className="mt-4 text-lg font-bold leading-8 text-slate-700">
-              모든 캐릭터, 배틀 기록, 고쳐쓰기 기록이 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
+              모든 캐릭터와 배틀 기록이 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
             </p>
             {resetError && (
               <div className="mt-4 rounded-lg bg-rose-50 px-4 py-3 text-base font-black text-rose-900">

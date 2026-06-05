@@ -215,23 +215,43 @@ export async function getRecentBattleRecords(limit = 10) {
   return data satisfies BattleRecord[];
 }
 
-export type TeacherBattleRecord = BattleRecord & {
+type BattleRecordQueryOptions = {
+  includeStory?: boolean;
+  limit?: number;
+};
+
+const BATTLE_RECORD_SUMMARY_COLUMNS =
+  'id,character_a_id,character_b_id,winner_character_id,situation_id,created_at' as const;
+
+const BATTLE_RECORD_DETAIL_COLUMNS =
+  'id,character_a_id,character_b_id,winner_character_id,situation_id,created_at,story' as const;
+
+type BattleRecordQueryResult = Pick<
+  BattleRecord,
+  'id' | 'character_a_id' | 'character_b_id' | 'winner_character_id' | 'situation_id' | 'created_at'
+> &
+  Partial<Pick<BattleRecord, 'story'>>;
+
+export type TeacherBattleRecord = BattleRecordQueryResult & {
   characterA?: Character;
   characterB?: Character;
   winnerCharacter?: Character;
 };
 
-export async function getAllBattleRecords() {
+export async function getAllBattleRecords(options: BattleRecordQueryOptions = {}) {
+  const { includeStory = false, limit = 50 } = options;
   const { data: records, error } = await supabase
     .from('battle_records')
-    .select('*')
-    .order('created_at', { ascending: false });
+    .select(includeStory ? BATTLE_RECORD_DETAIL_COLUMNS : BATTLE_RECORD_SUMMARY_COLUMNS)
+    .order('created_at', { ascending: false })
+    .limit(limit);
 
   if (error) throw error;
-  if (!records || records.length === 0) return [] satisfies TeacherBattleRecord[];
+  const queriedRecords = (records || []) as unknown as BattleRecordQueryResult[];
+  if (queriedRecords.length === 0) return [] satisfies TeacherBattleRecord[];
 
   const involvedCharacterIds = Array.from(
-    new Set(records.flatMap((record) => [record.character_a_id, record.character_b_id, record.winner_character_id])),
+    new Set(queriedRecords.flatMap((record) => [record.character_a_id, record.character_b_id, record.winner_character_id])),
   );
 
   const { data: involvedCharacters, error: characterError } = await supabase
@@ -243,7 +263,7 @@ export async function getAllBattleRecords() {
 
   const characterMap = new Map((involvedCharacters || []).map((character) => [character.id, character]));
 
-  return records.map((record) => ({
+  return queriedRecords.map((record) => ({
     ...record,
     characterA: characterMap.get(record.character_a_id),
     characterB: characterMap.get(record.character_b_id),
@@ -251,14 +271,18 @@ export async function getAllBattleRecords() {
   })) satisfies TeacherBattleRecord[];
 }
 
-export type StudentBattleRecord = BattleRecord & {
+export type StudentBattleRecord = BattleRecordQueryResult & {
   characterA?: Character;
   characterB?: Character;
   winnerCharacter?: Character;
   mySide: 'A' | 'B';
 };
 
-export async function getBattleRecordsForStudentNumber(studentNumber: number) {
+export async function getBattleRecordsForStudentNumber(
+  studentNumber: number,
+  options: BattleRecordQueryOptions = {},
+) {
+  const { includeStory = false, limit = 50 } = options;
   const myCharacters = await getCharactersByStudentNumber(studentNumber);
   const myCharacterIds = myCharacters.map((character) => character.id);
 
@@ -269,15 +293,17 @@ export async function getBattleRecordsForStudentNumber(studentNumber: number) {
   const idList = myCharacterIds.join(',');
   const { data: records, error } = await supabase
     .from('battle_records')
-    .select('*')
+    .select(includeStory ? BATTLE_RECORD_DETAIL_COLUMNS : BATTLE_RECORD_SUMMARY_COLUMNS)
     .or(`character_a_id.in.(${idList}),character_b_id.in.(${idList})`)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(limit);
 
   if (error) throw error;
-  if (!records || records.length === 0) return [] satisfies StudentBattleRecord[];
+  const queriedRecords = (records || []) as unknown as BattleRecordQueryResult[];
+  if (queriedRecords.length === 0) return [] satisfies StudentBattleRecord[];
 
   const involvedCharacterIds = Array.from(
-    new Set(records.flatMap((record) => [record.character_a_id, record.character_b_id, record.winner_character_id])),
+    new Set(queriedRecords.flatMap((record) => [record.character_a_id, record.character_b_id, record.winner_character_id])),
   );
 
   const { data: involvedCharacters, error: characterError } = await supabase
@@ -290,7 +316,7 @@ export async function getBattleRecordsForStudentNumber(studentNumber: number) {
   const characterMap = new Map((involvedCharacters || []).map((character) => [character.id, character]));
   const myCharacterIdSet = new Set(myCharacterIds);
 
-  return records.map((record) => ({
+  return queriedRecords.map((record) => ({
     ...record,
     characterA: characterMap.get(record.character_a_id),
     characterB: characterMap.get(record.character_b_id),

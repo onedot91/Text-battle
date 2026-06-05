@@ -54,22 +54,6 @@ create table if not exists public.battle_records (
 create index if not exists battle_records_created_idx
   on public.battle_records (created_at desc);
 
-create table if not exists public.rewrite_logs (
-  id uuid primary key default gen_random_uuid(),
-  character_id uuid not null references public.characters(id) on delete cascade,
-  student_number integer not null,
-  field_name text not null check (field_name in ('ability_blank', 'support1_blank', 'support2_blank', 'support3_blank')),
-  before_text text not null,
-  after_text text not null,
-  created_at timestamptz not null default now()
-);
-
-create index if not exists rewrite_logs_character_created_idx
-  on public.rewrite_logs (character_id, created_at desc);
-
-create index if not exists rewrite_logs_created_idx
-  on public.rewrite_logs (created_at desc);
-
 create table if not exists public.character_deletion_logs (
   id uuid primary key default gen_random_uuid(),
   student_number integer not null,
@@ -83,7 +67,6 @@ create index if not exists character_deletion_logs_student_created_idx
 
 alter table public.characters enable row level security;
 alter table public.battle_records enable row level security;
-alter table public.rewrite_logs enable row level security;
 alter table public.character_deletion_logs enable row level security;
 
 drop policy if exists "Public classroom access to characters" on public.characters;
@@ -98,14 +81,6 @@ drop policy if exists "Public classroom access to battle records" on public.batt
 
 create policy "Public classroom access to battle records"
   on public.battle_records
-  for all
-  using (true)
-  with check (true);
-
-drop policy if exists "Public classroom access to rewrite logs" on public.rewrite_logs;
-
-create policy "Public classroom access to rewrite logs"
-  on public.rewrite_logs
   for all
   using (true)
   with check (true);

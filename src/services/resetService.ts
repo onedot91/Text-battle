@@ -19,9 +19,6 @@ export async function resetAllClassroomData() {
     throw deletionLogResult.error;
   }
 
-  const rewriteResult = await supabase.from('rewrite_logs').delete().neq('id', EMPTY_UUID);
-  if (rewriteResult.error) throw rewriteResult.error;
-
   const battleResult = await supabase.from('battle_records').delete().neq('id', EMPTY_UUID);
   if (battleResult.error) throw battleResult.error;
 

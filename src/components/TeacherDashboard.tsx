@@ -7,6 +7,7 @@ import {
   setRepresentativeCharacter,
 } from '../services/characterService';
 import { getAllBattleRecords, type TeacherBattleRecord } from '../services/battleService';
+import { getDataLoadErrorMessage } from '../services/serviceErrors';
 import { situations } from '../data/situations';
 import { getFullParagraph } from '../utils/characterText';
 import { ErrorMessage } from './ErrorMessage';
@@ -52,11 +53,14 @@ export function TeacherDashboard({ refreshKey, onLoadingChange }: TeacherDashboa
     setIsLoading(true);
     onLoadingChange(true);
     try {
-      const [allCharacters, allBattleRecords] = await Promise.all([getAllCharacters(), getAllBattleRecords()]);
+      const [allCharacters, allBattleRecords] = await Promise.all([
+        getAllCharacters(),
+        getAllBattleRecords({ includeStory: true, limit: 30 }),
+      ]);
       setCharacters(allCharacters);
       setBattleRecords(allBattleRecords);
-    } catch {
-      setError('데이터를 불러오지 못했습니다.');
+    } catch (loadError) {
+      setError(getDataLoadErrorMessage(loadError));
     } finally {
       setIsLoading(false);
       onLoadingChange(false);
@@ -316,7 +320,7 @@ export function TeacherDashboard({ refreshKey, onLoadingChange }: TeacherDashboa
 
                   <div className="px-5 pb-5">
                     <p className="story-copy whitespace-pre-line break-keep rounded-lg bg-white p-4 text-lg font-semibold leading-8 text-slate-800 ring-1 ring-slate-200">
-                      {record.story}
+                      {record.story || '이야기 본문을 불러오지 못했습니다.'}
                     </p>
                   </div>
                 </article>
