@@ -69,6 +69,37 @@ textarea:focus-visible {
   }
 }
 
+@keyframes roulette-panel-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.005);
+  }
+}
+
+@keyframes roulette-focus-scan {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes roulette-lock-pop {
+  0% {
+    transform: scale(0.98);
+  }
+  55% {
+    transform: scale(1.025);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .story-loader {
   animation: story-loader-pulse 1.35s ease-in-out infinite;
 }
@@ -115,11 +146,51 @@ textarea:focus-visible {
 @keyframes winnerFadeIn {
   0% {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(16px) scale(0.985);
+    filter: blur(3px);
+  }
+  58% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.012);
+    filter: blur(0);
   }
   100% {
     opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes result-paper-glow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes winner-burst-ray {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--ray-rotation)) translateX(0) scaleX(0.3);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--ray-rotation)) translateX(72px) scaleX(1);
+  }
+}
+
+@keyframes winner-name-pulse {
+  0%,
+  100% {
     transform: translateY(0);
+  }
+  45% {
+    transform: translateY(-2px);
   }
 }
 
@@ -478,8 +549,12 @@ textarea:focus-visible {
     display: grid;
     overflow: hidden;
     border: 1px solid #000000 !important;
-    background: #f4ecd6 !important;
+    background:
+      linear-gradient(120deg, rgba(255, 255, 255, 0.52), rgba(244, 236, 214, 0) 28%, rgba(255, 255, 255, 0.46) 56%, rgba(244, 236, 214, 0) 82%),
+      #f4ecd6 !important;
+    background-size: 220% 100%;
     box-shadow: none !important;
+    animation: result-paper-glow 3.2s ease-in-out infinite alternate;
   }
 
   .battle-loading-header {
@@ -496,6 +571,15 @@ textarea:focus-visible {
   .battle-loading-header span {
     height: 10px !important;
     width: clamp(34px, 4vw, 48px) !important;
+    transition:
+      background-color 220ms ease,
+      transform 220ms ease;
+  }
+
+  .battle-loading-step-opponent .battle-loading-header span:first-child,
+  .battle-loading-step-situation .battle-loading-header span:nth-child(2),
+  .battle-loading-step-story .battle-loading-header span:nth-child(3) {
+    transform: scaleX(1.16);
   }
 
   .battle-roulette-grid {
@@ -523,6 +607,15 @@ textarea:focus-visible {
     background: #ffffff !important;
     padding: clamp(12px, 1.25vw, 16px) !important;
     box-shadow: none !important;
+    transform-origin: center;
+  }
+
+  .battle-roulette-panel.is-spinning {
+    animation: roulette-panel-breathe 780ms ease-in-out infinite;
+  }
+
+  .battle-roulette-panel.is-locked {
+    animation: roulette-lock-pop 360ms cubic-bezier(0.2, 0.9, 0.2, 1);
   }
 
   .battle-roulette-panel::before {
@@ -643,6 +736,17 @@ textarea:focus-visible {
     background: #ffffff;
     border-radius: 8px !important;
     box-shadow: none !important;
+    overflow: hidden;
+  }
+
+  .battle-reel-focus::after {
+    content: "";
+    position: absolute;
+    inset-block: -8px;
+    left: 0;
+    width: 42%;
+    background: linear-gradient(90deg, transparent, rgba(255, 216, 77, 0.46), transparent);
+    animation: roulette-focus-scan 900ms ease-in-out infinite;
   }
 
   .battle-reel-item {
@@ -668,12 +772,20 @@ textarea:focus-visible {
     opacity: 1;
     border-radius: 8px !important;
     box-shadow: none !important;
+    animation: winner-name-pulse 1.1s ease-in-out infinite;
   }
 
   .story-loader {
-    background: #dceeb1 !important;
+    position: relative;
+    background:
+      linear-gradient(110deg, rgba(255, 255, 255, 0.7), rgba(220, 238, 177, 0) 34%, rgba(255, 216, 77, 0.32) 58%, rgba(220, 238, 177, 0) 84%),
+      #dceeb1 !important;
+    background-size: 220% 100%;
     border: 1px solid #000000 !important;
     box-shadow: none !important;
+    animation:
+      story-loader-pulse 1.35s ease-in-out infinite,
+      result-paper-glow 2.4s ease-in-out infinite alternate;
   }
 
   .battle-story-row .story-loader {
@@ -836,17 +948,32 @@ textarea:focus-visible {
   }
 
   .result-story-section {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     border-color: #000000 !important;
     background: #f4ecd6 !important;
   }
 
+  .result-story-section.is-typing {
+    animation: none;
+  }
+
+  .result-story-section.is-complete {
+    background: #f4ecd6 !important;
+  }
+
   .story-copy {
+    position: relative;
+    z-index: 1;
     font-family:
       "Nanum Myeongjo", "Noto Serif KR", "AppleMyungjo", "Batang", "바탕",
       "Times New Roman", serif !important;
   }
 
   .winner-reveal {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
@@ -871,10 +998,59 @@ textarea:focus-visible {
   }
 
   .winner-name {
+    position: relative;
     max-width: 100%;
     color: #000000 !important;
     text-align: right;
     white-space: nowrap;
+    animation: winner-name-pulse 1.4s ease-in-out 2;
+  }
+
+  .winner-burst {
+    position: absolute;
+    right: clamp(24px, 5vw, 72px);
+    bottom: clamp(18px, 4vw, 44px);
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+  }
+
+  .winner-burst span {
+    --ray-rotation: 0deg;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 54px;
+    height: 4px;
+    transform-origin: left center;
+    border-radius: 9999px;
+    background: #000000;
+    animation: winner-burst-ray 720ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .winner-burst span:nth-child(2) {
+    --ray-rotation: 55deg;
+    animation-delay: 40ms;
+  }
+
+  .winner-burst span:nth-child(3) {
+    --ray-rotation: 110deg;
+    animation-delay: 80ms;
+  }
+
+  .winner-burst span:nth-child(4) {
+    --ray-rotation: 180deg;
+    animation-delay: 20ms;
+  }
+
+  .winner-burst span:nth-child(5) {
+    --ray-rotation: 235deg;
+    animation-delay: 70ms;
+  }
+
+  .winner-burst span:nth-child(6) {
+    --ray-rotation: 300deg;
+    animation-delay: 110ms;
   }
 
   .battle-history-winner {
@@ -1003,10 +1179,6 @@ textarea:focus-visible {
     font-size: clamp(1.45rem, 2vw, 2.1rem) !important;
   }
 
-  .battle-roulette-panel {
-    --reel-window-h: 150px;
-  }
-
   .battle-roulette-panel p {
     font-size: clamp(1rem, 1.15vw, 1.32rem) !important;
   }
@@ -1117,5 +1289,24 @@ textarea:focus-visible {
   .winner-name {
     text-align: left;
     white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot-reel-spinning,
+  .slot-reel-settled,
+  .story-loader,
+  .story-progress,
+  .story-equalizer,
+  .battle-loading-card,
+  .battle-roulette-panel.is-spinning,
+  .battle-roulette-panel.is-locked,
+  .battle-reel-focus::after,
+  .battle-reel-item.is-active,
+  .result-story-section.is-typing,
+  .winner-reveal,
+  .winner-name,
+  .winner-burst span {
+    animation: none !important;
   }
 }

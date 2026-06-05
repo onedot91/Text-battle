@@ -11,7 +11,7 @@ type BattleResultProps = {
   onComplete?: () => void;
 };
 
-const TYPE_SPEED_MS = 95;
+const TYPE_SPEED_MS = 135;
 
 export function BattleResult({ characterA, characterB, situation, result, onHome, onComplete }: BattleResultProps) {
   const [visibleStory, setVisibleStory] = useState('');
@@ -137,7 +137,9 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
         <p className="text-2xl font-black leading-8 text-slate-950">{situation.title}</p>
       </section>
 
-      <section className="result-story-section flex flex-col rounded-lg border-4 border-yellow-200 bg-yellow-50 px-7 py-8 shadow-sm sm:px-12 sm:py-10">
+      <section
+        className={`result-story-section ${isComplete ? 'is-complete' : 'is-typing'} flex flex-col rounded-lg border-4 border-yellow-200 bg-yellow-50 px-7 py-8 shadow-sm sm:px-12 sm:py-10`}
+      >
         <p className="story-copy max-w-[64em] whitespace-pre-line break-keep text-xl font-semibold leading-[2.05] text-slate-950 sm:text-[1.55rem] sm:leading-[2]">
           {visibleStory}
           {!isComplete && (
@@ -147,6 +149,14 @@ export function BattleResult({ characterA, characterB, situation, result, onHome
 
         {isComplete && (
           <div className="winner-reveal mt-10 border-t-2 border-yellow-200 pt-6 text-right opacity-0 animate-[winnerFadeIn_700ms_ease-out_forwards]">
+            <div className="winner-burst" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
             <div className="winner-reveal-header">
               <p className="winner-reveal-label text-base font-black text-yellow-950 sm:text-lg">승리 캐릭터</p>
             </div>

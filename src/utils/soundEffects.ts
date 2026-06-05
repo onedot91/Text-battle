@@ -18,7 +18,7 @@ type WindowWithWebkitAudio = Window & {
 const MASTER_VOLUME = 0.42;
 const MIN_PLAY_GAP_MS: Record<SoundName, number> = {
   button: 55,
-  type: 42,
+  type: 260,
   select: 45,
   confirm: 120,
   charge: 180,
@@ -29,6 +29,8 @@ const MIN_PLAY_GAP_MS: Record<SoundName, number> = {
   winner: 600,
   error: 280,
 };
+
+const majorPentatonic = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
 
 let audioContext: AudioContext | null = null;
 let masterGain: GainNode | null = null;
@@ -97,7 +99,28 @@ function playTone(
   oscillator.stop(startTime + duration + 0.02);
 }
 
-function playNoise(context: AudioContext, startTime: number, duration: number, volume: number) {
+function playChord(
+  context: AudioContext,
+  startTime: number,
+  frequencies: number[],
+  duration: number,
+  volume: number,
+  type: OscillatorType = 'triangle',
+  spread = 0.018,
+) {
+  frequencies.forEach((frequency, index) => {
+    playTone(context, startTime + index * spread, frequency, duration, volume / frequencies.length, type);
+  });
+}
+
+function playNoise(
+  context: AudioContext,
+  startTime: number,
+  duration: number,
+  volume: number,
+  frequency = 950,
+  q = 2.4,
+) {
   if (!masterGain) return;
 
   const buffer = context.createBuffer(1, Math.max(1, context.sampleRate * duration), context.sampleRate);
@@ -112,8 +135,8 @@ function playNoise(context: AudioContext, startTime: number, duration: number, v
 
   source.buffer = buffer;
   filter.type = 'bandpass';
-  filter.frequency.value = 950;
-  filter.Q.value = 2.4;
+  filter.frequency.value = frequency;
+  filter.Q.value = q;
   gain.gain.setValueAtTime(volume, startTime);
   gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
 
@@ -139,72 +162,84 @@ function playSound(name: SoundName, makeSound: (context: AudioContext, now: numb
 
 export function playSelectSound() {
   playSound('select', (context, now) => {
-    playTone(context, now, 520, 0.055, 0.25, 'triangle', 760);
+    playTone(context, now, 480, 0.055, 0.16, 'triangle', 760);
+    playTone(context, now + 0.035, 960, 0.04, 0.075, 'sine', 1180);
   });
 }
 
 export function playButtonSound() {
   playSound('button', (context, now) => {
-    playTone(context, now, 420, 0.04, 0.13, 'triangle', 520);
-    playTone(context, now + 0.025, 620, 0.045, 0.086, 'sine', 560);
+    playNoise(context, now, 0.018, 0.035, 1800, 1.9);
+    playTone(context, now, 360, 0.045, 0.105, 'triangle', 520);
+    playTone(context, now + 0.028, 720, 0.05, 0.075, 'sine', 640);
   });
 }
 
 export function playTypeSound() {
   playSound('type', (context, now) => {
-    const frequency = 560 + Math.random() * 180;
-    playTone(context, now, frequency, 0.026, 0.055, 'triangle', frequency * 0.92);
+    const frequency = majorPentatonic[Math.floor(Math.random() * majorPentatonic.length)];
+    playTone(context, now, frequency * 0.5, 0.018, 0.018, 'sine', frequency * 0.46);
   });
 }
 
 export function playConfirmSound() {
   playSound('confirm', (context, now) => {
-    playTone(context, now, 620, 0.055, 0.23, 'triangle', 880);
-    playTone(context, now + 0.045, 880, 0.07, 0.21, 'sine', 1180);
+    playTone(context, now, 392, 0.06, 0.18, 'triangle', 587.33);
+    playChord(context, now + 0.052, [587.33, 783.99, 1174.66], 0.12, 0.28, 'sine', 0.012);
   });
 }
 
 export function playChargeSound() {
   playSound('charge', (context, now) => {
-    playTone(context, now, 240, 0.16, 0.23, 'sawtooth', 540);
-    playTone(context, now + 0.08, 360, 0.18, 0.14, 'triangle', 900);
+    playNoise(context, now, 0.18, 0.055, 520, 4.5);
+    playTone(context, now, 180, 0.18, 0.16, 'sawtooth', 420);
+    playTone(context, now + 0.07, 360, 0.2, 0.13, 'triangle', 900);
+    playTone(context, now + 0.17, 720, 0.11, 0.09, 'sine', 1440);
   });
 }
 
 export function playStartSound() {
   playSound('start', (context, now) => {
-    playTone(context, now, 220, 0.08, 0.23, 'square', 220);
-    playTone(context, now + 0.055, 440, 0.11, 0.21, 'triangle', 660);
-    playTone(context, now + 0.145, 880, 0.13, 0.18, 'sine', 1320);
+    playNoise(context, now, 0.05, 0.06, 1200, 2);
+    playTone(context, now, 196, 0.08, 0.17, 'square', 196);
+    playTone(context, now + 0.055, 392, 0.11, 0.15, 'triangle', 659.25);
+    playChord(context, now + 0.145, [659.25, 880, 1318.51], 0.2, 0.28, 'sine', 0.018);
   });
 }
 
 export function playRouletteTickSound() {
   playSound('rouletteTick', (context, now) => {
-    playNoise(context, now, 0.028, 0.092);
-    playTone(context, now, 760, 0.032, 0.075, 'triangle', 620);
+    const frequency = majorPentatonic[Math.floor(Math.random() * majorPentatonic.length)] * 1.5;
+    playNoise(context, now, 0.018, 0.055, 2100, 3.2);
+    playTone(context, now, frequency, 0.03, 0.055, 'triangle', frequency * 0.7);
   });
 }
 
 export function playRouletteLockSound() {
   playSound('rouletteLock', (context, now) => {
-    playTone(context, now, 360, 0.075, 0.21, 'triangle', 360);
-    playTone(context, now + 0.065, 720, 0.11, 0.17, 'sine', 540);
+    playNoise(context, now, 0.055, 0.08, 850, 5.4);
+    playTone(context, now, 220, 0.085, 0.17, 'sine', 220);
+    playTone(context, now + 0.07, 440, 0.1, 0.14, 'triangle', 330);
+    playChord(context, now + 0.13, [523.25, 659.25, 783.99], 0.16, 0.21, 'sine', 0.01);
   });
 }
 
 export function playStoryTransitionSound() {
   playSound('storyTransition', (context, now) => {
-    playTone(context, now, 330, 0.18, 0.14, 'sine', 660);
-    playTone(context, now + 0.12, 495, 0.2, 0.12, 'triangle', 990);
+    playNoise(context, now, 0.24, 0.052, 700, 2.8);
+    playTone(context, now, 261.63, 0.18, 0.12, 'sine', 523.25);
+    playTone(context, now + 0.105, 392, 0.2, 0.11, 'triangle', 783.99);
+    playTone(context, now + 0.22, 1046.5, 0.18, 0.08, 'sine', 1567.98);
   });
 }
 
 export function playWinnerSound() {
   playSound('winner', (context, now) => {
-    playTone(context, now, 523.25, 0.12, 0.21, 'triangle');
-    playTone(context, now + 0.1, 659.25, 0.12, 0.18, 'triangle');
-    playTone(context, now + 0.2, 783.99, 0.2, 0.18, 'sine');
+    playNoise(context, now, 0.09, 0.075, 1700, 2.2);
+    playTone(context, now, 261.63, 0.09, 0.16, 'triangle', 392);
+    playTone(context, now + 0.08, 523.25, 0.1, 0.13, 'triangle', 659.25);
+    playTone(context, now + 0.17, 783.99, 0.12, 0.12, 'triangle', 1046.5);
+    playChord(context, now + 0.31, [523.25, 659.25, 783.99, 1046.5], 0.42, 0.34, 'sine', 0.018);
   });
 }
 

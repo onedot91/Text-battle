@@ -9,10 +9,11 @@ import { BattleResult } from './components/BattleResult';
 import { TeacherDashboard } from './components/TeacherDashboard';
 import { BattleHistory } from './components/BattleHistory';
 import { InitialStudentNumberSelect } from './components/InitialStudentNumberSelect';
-import { resetAllClassroomData } from './services/resetService';
+import { resetBattleRecords, resetCharacters } from './services/resetService';
 import { playButtonSound, playTypeSound } from './utils/soundEffects';
 
 type View = 'home' | 'form' | 'book' | 'battle' | 'result' | 'history' | 'teacher';
+type ResetTarget = 'characters' | 'battleRecords';
 
 type ResultPayload = {
   characterA: Character;
@@ -148,8 +149,8 @@ export default function App() {
   const [view, setView] = useState<View>(() => (resultPayload ? 'result' : 'home'));
   const [teacherRefreshKey, setTeacherRefreshKey] = useState(0);
   const [isTeacherLoading, setIsTeacherLoading] = useState(false);
-  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-  const [isResettingClassroom, setIsResettingClassroom] = useState(false);
+  const [resetTarget, setResetTarget] = useState<ResetTarget | null>(null);
+  const [isResettingData, setIsResettingData] = useState(false);
   const [resetError, setResetError] = useState('');
   const [homeBattleNotice, setHomeBattleNotice] = useState('');
   const [isBlockedByMorningActivity, setIsBlockedByMorningActivity] = useState(() =>
@@ -244,21 +245,46 @@ export default function App() {
     });
   };
 
-  const handleResetAllClassroomData = async () => {
+  const openResetModal = (target: ResetTarget) => {
     setResetError('');
-    setIsResettingClassroom(true);
+    setResetTarget(target);
+  };
+
+  const handleResetData = async () => {
+    if (!resetTarget) return;
+
+    setResetError('');
+    setIsResettingData(true);
     try {
-      await resetAllClassroomData();
-      clearLocalBattleNotificationState();
-      setResultPayload(null);
-      setIsResetModalOpen(false);
+      if (resetTarget === 'characters') {
+        await resetCharacters();
+        clearLocalBattleNotificationState();
+        setResultPayload(null);
+      } else {
+        await resetBattleRecords();
+        clearLocalBattleNotificationState();
+        setResultPayload(null);
+      }
+
+      setResetTarget(null);
       setTeacherRefreshKey((current) => current + 1);
     } catch {
-      setResetError('전면 초기화에 실패했습니다. 잠시 후 다시 시도하세요.');
+      setResetError('초기화에 실패했습니다. 잠시 후 다시 시도하세요.');
     } finally {
-      setIsResettingClassroom(false);
+      setIsResettingData(false);
     }
   };
+
+  const resetDialogTitle =
+    resetTarget === 'characters'
+      ? '정말 캐릭터를 초기화할까요?'
+      : '정말 배틀 기록을 초기화할까요?';
+  const resetDialogDescription =
+    resetTarget === 'characters'
+      ? '모든 학생의 캐릭터가 삭제됩니다. 캐릭터와 연결된 배틀 기록도 함께 삭제되며, 이 작업은 되돌릴 수 없습니다.'
+      : '모든 배틀 기록이 삭제됩니다. 캐릭터는 그대로 남지만, 이 작업은 되돌릴 수 없습니다.';
+  const resetConfirmLabel =
+    resetTarget === 'characters' ? '캐릭터 초기화' : '배틀 기록 초기화';
 
   return (
     <Layout
@@ -328,26 +354,34 @@ export default function App() {
             <div className="flex flex-wrap gap-3">
               <button
                 className="rounded-lg bg-red-700 px-6 py-4 text-xl font-black text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-                disabled={isTeacherLoading || isResettingClassroom}
-                onClick={() => {
-                  setResetError('');
-                  setIsResetModalOpen(true);
-                }}
+                disabled={isTeacherLoading || isResettingData}
+                onClick={() => openResetModal('characters')}
               >
-                전면 초기화
+                캐릭터 초기화
               </button>
               <button
-                className="rounded-lg bg-sky-700 px-6 py-4 text-xl font-black text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-                disabled={isTeacherLoading || isResettingClassroom}
+                className="rounded-lg bg-red-700 px-6 py-4 text-xl font-black text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                disabled={isTeacherLoading || isResettingData}
+                onClick={() => openResetModal('battleRecords')}
+              >
+                배틀 기록 초기화
+              </button>
+              <button
+                className="inline-flex h-16 w-16 items-center justify-center rounded-lg bg-sky-700 text-3xl font-black leading-none text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                disabled={isTeacherLoading || isResettingData}
                 onClick={() => setTeacherRefreshKey((current) => current + 1)}
+                aria-label="새로고침"
+                title="새로고침"
               >
-                {isTeacherLoading ? '불러오는 중' : '새로고침'}
+                ↻
               </button>
               <button
-                className="rounded-lg bg-sky-700 px-6 py-4 text-xl font-black text-white hover:bg-sky-800"
+                className="inline-flex h-16 w-16 items-center justify-center rounded-lg bg-sky-700 text-3xl font-black leading-none text-white hover:bg-sky-800"
                 onClick={() => setView('home')}
+                aria-label="처음으로"
+                title="처음으로"
               >
-                처음으로
+                ⌂
               </button>
             </div>
           </div>
@@ -357,7 +391,7 @@ export default function App() {
           />
         </div>
       )}
-      {isResetModalOpen && (
+      {resetTarget && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/45 px-6">
           <div
             className="w-full max-w-lg rounded-lg border border-slate-200 bg-white p-6 shadow-xl"
@@ -367,10 +401,10 @@ export default function App() {
             aria-describedby="reset-all-description"
           >
             <h2 id="reset-all-title" className="text-3xl font-black text-slate-950">
-              정말 전면 초기화할까요?
+              {resetDialogTitle}
             </h2>
             <p id="reset-all-description" className="mt-4 text-lg font-bold leading-8 text-slate-700">
-              모든 캐릭터와 배틀 기록이 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
+              {resetDialogDescription}
             </p>
             {resetError && (
               <div className="mt-4 rounded-lg bg-rose-50 px-4 py-3 text-base font-black text-rose-900">
@@ -381,18 +415,18 @@ export default function App() {
               <button
                 className="rounded-lg border-2 border-slate-200 bg-white px-6 py-4 text-xl font-black text-slate-900 hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-40"
                 type="button"
-                disabled={isResettingClassroom}
-                onClick={() => setIsResetModalOpen(false)}
+                disabled={isResettingData}
+                onClick={() => setResetTarget(null)}
               >
                 취소
               </button>
               <button
                 className="rounded-lg bg-red-700 px-6 py-4 text-xl font-black text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-slate-300"
                 type="button"
-                disabled={isResettingClassroom}
-                onClick={() => void handleResetAllClassroomData()}
+                disabled={isResettingData}
+                onClick={() => void handleResetData()}
               >
-                {isResettingClassroom ? '초기화 중' : '전면 초기화'}
+                {isResettingData ? '초기화 중' : resetConfirmLabel}
               </button>
             </div>
           </div>

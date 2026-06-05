@@ -13,14 +13,16 @@ function isMissingDeletionLogTable(error: unknown) {
   );
 }
 
-export async function resetAllClassroomData() {
+export async function resetBattleRecords() {
+  const battleResult = await supabase.from('battle_records').delete().neq('id', EMPTY_UUID);
+  if (battleResult.error) throw battleResult.error;
+}
+
+export async function resetCharacters() {
   const deletionLogResult = await supabase.from('character_deletion_logs').delete().neq('id', EMPTY_UUID);
   if (deletionLogResult.error && !isMissingDeletionLogTable(deletionLogResult.error)) {
     throw deletionLogResult.error;
   }
-
-  const battleResult = await supabase.from('battle_records').delete().neq('id', EMPTY_UUID);
-  if (battleResult.error) throw battleResult.error;
 
   const characterResult = await supabase.from('characters').delete().neq('id', EMPTY_UUID);
   if (characterResult.error) throw characterResult.error;

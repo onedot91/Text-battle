@@ -92,7 +92,7 @@ type RoulettePanelStyle = CSSProperties & {
 };
 
 const reelStepPx = 48;
-const reelCenterOffsetPx = 78;
+const reelCenterOffsetPx = 68;
 
 function getReelItems(items: string[], value: string, isSpinning: boolean) {
   const fallbackItems = items.length > 0 ? items : [value || '준비 중'];
@@ -142,7 +142,11 @@ function RoulettePanel({
   };
 
   return (
-    <article className={`battle-roulette-panel overflow-hidden rounded-lg border-2 p-5 ${classes.box}`}>
+    <article
+      className={`battle-roulette-panel overflow-hidden rounded-lg border-2 p-5 ${classes.box} ${
+        isSpinning ? 'is-spinning' : 'is-locked'
+      }`}
+    >
       <div className="battle-roulette-heading flex items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <p className={`text-lg font-black ${classes.label}`}>{title}</p>
@@ -401,7 +405,9 @@ export function BattleStart({ initialStudentNumber = 1, onResult, onUnavailable 
   return (
     <div className="battle-start-screen space-y-6">
       {isLoading && (
-        <section className="battle-loading-card overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <section
+          className={`battle-loading-card battle-loading-step-${loadingStep} overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm`}
+        >
           <div className="battle-loading-header bg-slate-950 px-6 py-5 text-white">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <p className="text-2xl font-black">
