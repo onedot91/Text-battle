@@ -371,12 +371,9 @@ export function CharacterForm({
                 내 캐릭터 보기
               </button>
               <button
-                className="rounded-lg bg-rose-600 px-5 py-5 text-xl font-black text-white hover:bg-rose-700"
+                className="rounded-lg bg-rose-600 px-5 py-5 text-xl font-black text-white disabled:cursor-not-allowed disabled:opacity-45"
                 type="button"
-                onClick={() => {
-                  setIsNextChoiceOpen(false);
-                  onChooseNext?.('battle');
-                }}
+                disabled
               >
                 배틀하기
               </button>
